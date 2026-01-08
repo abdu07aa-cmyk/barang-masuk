@@ -66,6 +66,12 @@ const paperList = ["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","50 LEAVES"];
 
 let lastValue = {};
 
+// ===== OPTION DROPDOWN (FIX TOTAL) =====
+function opt(list, selected){
+  return '<option value="">-- pilih --</option>' +
+    list.map(v => `<option ${v===selected?'selected':''}>${v}</option>`).join("");
+}
+
 // ===== TAMBAH BARIS =====
 function tambahBaris(){
  const table = document.getElementById("inputTable");
@@ -78,12 +84,6 @@ function tambahBaris(){
  <td><input type="number" value="${lastValue.qty || ""}"></td>
  <td><button class="btn-red" onclick="this.closest('tr').remove()">Hapus</button></td>
  `;
-}
-
-// ===== OPTION DROPDOWN (FIX) =====
-function opt(list, selected){
-  return '<option value="">-- pilih --</option>' +
-    list.map(v => <option ${v===selected?'selected':''}>${v}</option>).join("");
 }
 
 // ===== SIMPAN DATA =====
@@ -132,8 +132,14 @@ function exportExcel(){
  let data=[];
  for(let i=1;i<table.rows.length;i++){
   let r=table.rows[i];
-  data.push([r.cells[0].innerText,r.cells[1].innerText,r.cells[2].innerText,
-             r.cells[3].innerText,r.cells[4].innerText,r.cells[5].innerText]);
+  data.push([
+    r.cells[0].innerText,
+    r.cells[1].innerText,
+    r.cells[2].innerText,
+    r.cells[3].innerText,
+    r.cells[4].innerText,
+    r.cells[5].innerText
+  ]);
  }
 
  let wb=XLSX.utils.book_new();
@@ -142,15 +148,15 @@ function exportExcel(){
  XLSX.writeFile(wb,"Report_Barang_Masuk.xlsx");
 }
 
-// ===== KIRIM WHATSAPP =====
+// ===== KIRIM WHATSAPP (FIX TOTAL) =====
 function kirimWAGroup(){
  const rows=document.querySelectorAll("#dataTable tr");
  if(rows.length<=1){ alert("Data kosong"); return; }
 
- let pesan="📦 REPORT BARANG MASUK\n\n";
+ let pesan = "📦 REPORT BARANG MASUK\n\n";
  for(let i=1;i<rows.length;i++){
    let c=rows[i].cells;
-   pesan+=• ${c[1].innerText} | ${c[2].innerText} | ${c[3].innerText} | ${c[4].innerText} | Qty ${c[5].innerText}\n;
+   pesan += `• ${c[1].innerText} | ${c[2].innerText} | ${c[3].innerText} | ${c[4].innerText} | Qty ${c[5].innerText}\n`;
  }
 
  window.open("https://api.whatsapp.com/send?text="+encodeURIComponent(pesan));
