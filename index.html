@@ -196,7 +196,7 @@ ${hasil[brand].list.join("%0A")}
  let linkWA = "https://api.whatsapp.com/send?text=" + encodeURIComponent(pesan);
  window.open(linkWA, "_blank");
 }
-
+window.onload = function(){tambahBaris();};
 </script>
 </body>
 </html>
