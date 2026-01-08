@@ -58,7 +58,7 @@ th{background:#eaeaea}
 </tr>
 </table>
 
-<script>
+<script type="text/javascript">
 // ===== DATA LIST =====
 const jenisList = ["BOOKLET","FILTER WHITE","FILTER BROWN","DISPLAY","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER","MIKA"];
 const sizeList  = ["1 1/4","SINGLE","KS","KSS","KSSS","SKS"];
@@ -66,7 +66,7 @@ const paperList = ["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","50 LEAVES"];
 
 let lastValue = {};
 
-// ===== OPTION DROPDOWN (FIX TOTAL) =====
+// ===== OPTION DROPDOWN =====
 function opt(list, selected){
   return '<option value="">-- pilih --</option>' +
     list.map(v => `<option ${v===selected?'selected':''}>${v}</option>`).join("");
@@ -132,14 +132,8 @@ function exportExcel(){
  let data=[];
  for(let i=1;i<table.rows.length;i++){
   let r=table.rows[i];
-  data.push([
-    r.cells[0].innerText,
-    r.cells[1].innerText,
-    r.cells[2].innerText,
-    r.cells[3].innerText,
-    r.cells[4].innerText,
-    r.cells[5].innerText
-  ]);
+  data.push([r.cells[0].innerText,r.cells[1].innerText,r.cells[2].innerText,
+             r.cells[3].innerText,r.cells[4].innerText,r.cells[5].innerText]);
  }
 
  let wb=XLSX.utils.book_new();
@@ -148,22 +142,22 @@ function exportExcel(){
  XLSX.writeFile(wb,"Report_Barang_Masuk.xlsx");
 }
 
-// ===== KIRIM WHATSAPP (FIX TOTAL) =====
+// ===== KIRIM WHATSAPP (FIX) =====
 function kirimWAGroup(){
  const rows=document.querySelectorAll("#dataTable tr");
  if(rows.length<=1){ alert("Data kosong"); return; }
 
- let pesan = "📦 REPORT BARANG MASUK\n\n";
+ let pesan = "REPORT BARANG MASUK\n\n";
  for(let i=1;i<rows.length;i++){
    let c=rows[i].cells;
-   pesan += `• ${c[1].innerText} | ${c[2].innerText} | ${c[3].innerText} | ${c[4].innerText} | Qty ${c[5].innerText}\n`;
+   pesan += `- ${c[1].innerText} | ${c[2].innerText} | ${c[3].innerText} | ${c[4].innerText} | Qty ${c[5].innerText}\n`;
  }
 
  window.open("https://api.whatsapp.com/send?text="+encodeURIComponent(pesan));
 }
 
-// ===== AUTO BARIS PERTAMA =====
-window.onload = ()=>tambahBaris();
+// ===== AUTO BARIS =====
+window.onload = () => tambahBaris();
 </script>
 
 </body>
