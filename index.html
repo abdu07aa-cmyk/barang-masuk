@@ -44,6 +44,9 @@ th{background:#eaeaea}
 <button class="btn" onclick="simpanData()">Simpan</button>
 <button class="btn-green" onclick="exportExcel()">Export Excel</button>
 <button class="btn-green" onclick="kirimWAGroup()">Kirim ke WA Group</button>
+<a href="https://chat.whatsapp.com/JxuBOcHA8BxA4rWoiWA05o" target="_blank">
+Gabung Grup WhatsApp
+</a>
 
 <h3>Data Barang Masuk</h3>
 <table id="dataTable">
@@ -57,108 +60,143 @@ th{background:#eaeaea}
 <th>Aksi</th>
 </tr>
 </table>
+<script>
+// Daftar pilihan
+const jenisList = ["BOOKLET","FILTER WHITE","FILTER BROWN","DISPLAY","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER","MIKA","STICKER MIKA","STICKER BULAT BESAR","STICKER BULAT KECIL","TUBE","FILTER 21","FILTER 26","FILTER 30","HOLDER S","HOLDER M","HOLDER L","HOLDER 9X9","HOLDER 10X10"];
+const sizeList  = ["1 1/4","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PACK","700 CONES/BOX","729 CONES/BOX","900 CONES/BOX","800 CONES/BOX","1000 CONES/BOX"];
+const paperList = ["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","42 LEAVES","50 LEAVES","51 LEAVES","52 LEAVES","60 LEAVES","70 MM","83 MM","84 MM","98 MM","109 MM"];
 
-<script type="text/javascript">
-// ===== DATA LIST =====
-const jenisList = ["BOOKLET","FILTER WHITE","FILTER BROWN","DISPLAY","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER","MIKA"];
-const sizeList  = ["1 1/4","SINGLE","KS","KSS","KSSS","SKS"];
-const paperList = ["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","50 LEAVES"];
+let lastValue={};
 
-let lastValue = {};
-
-// ===== OPTION DROPDOWN =====
-function opt(list, selected){
-  return '<option value="">-- pilih --</option>' +
-    list.map(v => `<option ${v===selected?'selected':''}>${v}</option>`).join("");
-}
-
-// ===== TAMBAH BARIS =====
 function tambahBaris(){
- const table = document.getElementById("inputTable");
- const row = table.insertRow(-1);
+ const table=document.getElementById("inputTable");
+ const row=table.insertRow(-1);
 
- row.innerHTML = `
+ row.innerHTML=`
  <td><select>${opt(jenisList,lastValue.jenis)}</select></td>
  <td><select>${opt(paperList,lastValue.paper)}</select></td>
  <td><select>${opt(sizeList,lastValue.size)}</select></td>
- <td><input type="number" value="${lastValue.qty || ""}"></td>
- <td><button class="btn-red" onclick="this.closest('tr').remove()">Hapus</button></td>
+ <td><input type="number" value="${lastValue.qty||""}"></td>
+ <td><button class="btn-red" onclick="this.parentElement.parentElement.remove()">Hapus</button></td>
  `;
 }
 
-// ===== SIMPAN DATA =====
-function simpanData(){
- const tanggal = document.getElementById("tanggal").value;
- const brand   = document.getElementById("brand").value;
- const rows    = document.querySelectorAll("#inputTable tr");
+function opt(list,selected){
+ return `<option value="">-- pilih --</option>`+
+ list.map(v=>`<option ${v==selected?"selected":""}>${v}</option>`).join("");
+}
 
- if(!tanggal || !brand){
+function simpanData(){
+ const tanggal=document.getElementById("tanggal").value;
+ const brand=document.getElementById("brand").value;
+ const rows=document.querySelectorAll("#inputTable tr");
+
+ if(!tanggal||!brand){
    alert("Tanggal & Brand wajib");
    return;
  }
 
  for(let i=1;i<rows.length;i++){
-   const e = rows[i].querySelectorAll("select,input");
-   if(!e[0].value) continue;
+   const e=rows[i].querySelectorAll("select,input");
+   if(!e[0].value)continue;
 
-   lastValue = {
+   lastValue={
      jenis:e[0].value,
      paper:e[1].value,
      size:e[2].value,
      qty:e[3].value
    };
 
-   document.getElementById("dataTable").insertRow(-1).innerHTML = `
+   document.getElementById("dataTable").insertRow(-1).innerHTML=`
    <td>${tanggal}</td>
    <td>${brand}</td>
    <td>${e[0].value}</td>
    <td>${e[1].value}</td>
    <td>${e[2].value}</td>
    <td>${e[3].value}</td>
-   <td><button class="btn-red" onclick="this.closest('tr').remove()">Hapus</button></td>`;
+   <td><button class="btn-red" onclick="this.parentElement.parentElement.remove()">Hapus</button></td>`;
  }
 
- document.getElementById("inputTable").innerHTML = `
+ document.getElementById("inputTable").innerHTML=`
  <tr>
- <th>Jenis</th><th>Paper</th><th>Size</th><th>Barang Masuk</th><th>Aksi</th>
+ <th>Jenis</th>
+ <th>Paper</th>
+ <th>Size</th>
+ <th>Barang Masuk</th>
+ <th>Aksi</th>
  </tr>`;
 }
 
-// ===== EXPORT EXCEL =====
 function exportExcel(){
  let table=document.getElementById("dataTable");
- if(table.rows.length<=1){ alert("Data kosong"); return; }
+ if(table.rows.length<=1){
+   alert("Data kosong");
+   return;
+ }
 
  let data=[];
  for(let i=1;i<table.rows.length;i++){
   let r=table.rows[i];
-  data.push([r.cells[0].innerText,r.cells[1].innerText,r.cells[2].innerText,
-             r.cells[3].innerText,r.cells[4].innerText,r.cells[5].innerText]);
+  data.push([
+    r.cells[0].innerText,
+    r.cells[1].innerText,
+    r.cells[2].innerText,
+    r.cells[3].innerText,
+    r.cells[4].innerText,
+    r.cells[5].innerText
+  ]);
  }
 
- let wb=XLSX.utils.book_new();
- let ws=XLSX.utils.aoa_to_sheet([["Tanggal","Brand","Jenis","Paper","Size","Qty"],...data]);
- XLSX.utils.book_append_sheet(wb,ws,"Barang Masuk");
- XLSX.writeFile(wb,"Report_Barang_Masuk.xlsx");
+ let wb = XLSX.utils.book_new();
+ let ws = XLSX.utils.aoa_to_sheet([
+   ["Tanggal","Brand","Jenis","Paper","Size","Barang Masuk"],
+   ...data
+ ]);
+
+ XLSX.utils.book_append_sheet(wb, ws, "Barang Masuk");
+ XLSX.writeFile(wb, "Report_Barang_Masuk.xlsx");
 }
 
-// ===== KIRIM WHATSAPP (FIX) =====
 function kirimWAGroup(){
- const rows=document.querySelectorAll("#dataTable tr");
- if(rows.length<=1){ alert("Data kosong"); return; }
+ const table = document.getElementById("dataTable");
+ const rows  = table.querySelectorAll("tr");
 
- let pesan = "REPORT BARANG MASUK\n\n";
- for(let i=1;i<rows.length;i++){
-   let c=rows[i].cells;
-   pesan += `- ${c[1].innerText} | ${c[2].innerText} | ${c[3].innerText} | ${c[4].innerText} | Qty ${c[5].innerText}\n`;
+ if(rows.length<=1){
+   alert("Data barang masuk masih kosong");
+   return;
  }
 
- window.open("https://api.whatsapp.com/send?text="+encodeURIComponent(pesan));
+ let hasil = {};
+
+ for(let i=1;i<rows.length;i++){
+   let c = rows[i].cells;
+   let tanggal = c[0].innerText;
+   let brand   = c[1].innerText;
+   let detail  = `• ${c[2].innerText} | ${c[3].innerText} | ${c[4].innerText} | Qty ${c[5].innerText}`;
+
+   if(!hasil[brand]){
+     hasil[brand] = { tanggal, list: [] };
+   }
+   hasil[brand].list.push(detail);
+ }
+
+ let pesan = "";
+ for(let brand in hasil){
+   pesan +=
+`📦 *REPORT BARANG MASUK*
+📅 ${hasil[brand].tanggal}
+🏷️ Brand: ${brand}
+
+${hasil[brand].list.join("%0A")}
+
+--------------------
+`;
+ }
+
+ let linkWA = "https://api.whatsapp.com/send?text=" + encodeURIComponent(pesan);
+ window.open(linkWA, "_blank");
 }
 
-// ===== AUTO BARIS =====
-window.onload = () => tambahBaris();
 </script>
-
 </body>
 </html>
