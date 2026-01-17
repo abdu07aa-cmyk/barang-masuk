@@ -3,200 +3,219 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Report Barang Masuk</title>
-
+<title>Report Barang Masuk - Final</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 body{font-family:Arial;padding:10px;background:#f4f6f8}
-input,select,button{padding:6px;margin:4px;width:100%}
+input,select,button{padding:8px;margin:5px;width:100%}
 table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff}
-th,td{border:1px solid #ccc;padding:6px;text-align:center;font-size:12px}
-th{background:#eaeaea}
-.btn{background:#007bff;color:#fff;border:none;border-radius:4px}
-.btn-red{background:#dc3545;color:#fff;border:none;border-radius:4px}
-.btn-green{background:#28a745;color:#fff;border:none;border-radius:4px}
+th,td{border:1px solid #ccc;padding:6px;font-size:12px;text-align:center}
+th{background:#eee}
+.btn{background:#007bff;color:#fff;border:none;border-radius:5px;cursor:pointer;margin-top:5px}
+.btn-green{background:#28a745;color:#fff;border:none;border-radius:5px;cursor:pointer;margin-top:5px}
+.btn-red{background:#dc3545;color:#fff;border:none;border-radius:5px;cursor:pointer;margin-top:5px}
+.btn-yellow{background:#ffc107;color:#000;border:none;border-radius:5px;cursor:pointer;margin-top:5px}
 </style>
 </head>
-
 <body>
 
-<h3>Report Barang Masuk</h3>
+<h3>📦 Report Barang Masuk (Final)</h3>
 
-<label>Tanggal</label>
 <input type="date" id="tanggal">
-
-<label>Nama Brand</label>
 <input type="text" id="brand" placeholder="Nama Brand">
 
-<h4>Detail Barang Masuk</h4>
 <table id="inputTable">
-<tr>
-<th>Jenis</th>
-<th>Paper</th>
-<th>Size</th>
-<th>Barang Masuk</th>
-<th>Aksi</th>
-</tr>
+<tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
 </table>
 
-<button class="btn" onclick="tambahBaris()">+ Tambah Barang</button>
-<button class="btn" onclick="simpanData()">Simpan</button>
-<button class="btn-green" onclick="exportExcel()">Export Excel</button>
-<button class="btn-green" onclick="kirimWAGroup()">Kirim ke WA Group</button>
-<a href="https://chat.whatsapp.com/JxuBOcHA8BxA4rWoiWA05o" target="_blank">
-Gabung Grup WhatsApp
-</a>
+<button id="btnTambah" class="btn">+ Tambah Barang</button>
+<button id="btnSimpan" class="btn">💾 Simpan</button>
 
-<h3>Data Barang Masuk</h3>
+<h3>Data Tersimpan</h3>
 <table id="dataTable">
-<tr>
-<th>Tanggal</th>
-<th>Brand</th>
-<th>Jenis</th>
-<th>Paper</th>
-<th>Size</th>
-<th>Barang Masuk</th>
-<th>Aksi</th>
-</tr>
+<tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
 </table>
+
+<button id="btnExcelTable" class="btn-green">📄 Export Excel</button>
+<button id="btnWATable" class="btn-green">📲 Kirim WA</button>
+
 <script>
-// Daftar pilihan
-const jenisList = ["BOOKLET","FILTER WHITE","FILTER BROWN","DISPLAY","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER","MIKA","STICKER MIKA","STICKER BULAT BESAR","STICKER BULAT KECIL","TUBE","FILTER 21","FILTER 26","FILTER 30","HOLDER S","HOLDER M","HOLDER L","HOLDER 9X9","HOLDER 10X10"];
-const sizeList  = ["1 1/4","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PACK","700 CONES/BOX","729 CONES/BOX","900 CONES/BOX","800 CONES/BOX","1000 CONES/BOX"];
-const paperList = ["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","42 LEAVES","50 LEAVES","51 LEAVES","52 LEAVES","60 LEAVES","70 MM","83 MM","84 MM","98 MM","109 MM"];
+document.addEventListener("DOMContentLoaded", ()=>{
 
-let lastValue={};
+// ======= Supabase =======
+const supabase = window.supabase.createClient(
+  "https://dggspzjibisapdaowkkj.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY"
+);
 
+// ======= Data opsi =======
+const jenis=["BOOKLET","FILTER WHITE","FILTER BROWN","DISPLAY","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER",
+"MIKA","STICKER MIKA","STICKER BULAT BESAR","STICKER BULAT KECIL","TUBE","FILTER 21","FILTER 26",
+"FILTER 30","HOLDER S","HOLDER M","HOLDER L","HOLDER 9X9","HOLDER 10X10"];
+const paper=["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","42 LEAVES","50 LEAVES","51 LEAVES","52 LEAVES",
+"60 LEAVES","70 MM","83 MM","84 MM","98 MM","109 MM"];
+const size=["1/4","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PACK","700 CONES/BOX",
+"729 CONES/BOX","900 CONES/BOX","800 CONES/BOX","1000 CONES/BOX"];
+const opt=l=>'<option></option>'+l.map(v=>`<option>${v}</option>`).join('');
+
+// ======= Tambah baris input =======
 function tambahBaris(){
- const table=document.getElementById("inputTable");
- const row=table.insertRow(-1);
-
- row.innerHTML=`
- <td><select>${opt(jenisList,lastValue.jenis)}</select></td>
- <td><select>${opt(paperList,lastValue.paper)}</select></td>
- <td><select>${opt(sizeList,lastValue.size)}</select></td>
- <td><input type="number" value="${lastValue.qty||""}"></td>
- <td><button class="btn-red" onclick="this.parentElement.parentElement.remove()">Hapus</button></td>
- `;
+  const r=inputTable.insertRow(-1);
+  r.innerHTML=`<td><select>${opt(jenis)}</select></td>
+  <td><select>${opt(paper)}</select></td>
+  <td><select>${opt(size)}</select></td>
+  <td><input type="number" min="1"></td>
+  <td><button class="btn-red" onclick="this.closest('tr').remove()">X</button></td>`;
 }
 
-function opt(list,selected){
- return `<option value="">-- pilih --</option>`+
- list.map(v=>`<option ${v==selected?"selected":""}>${v}</option>`).join("");
+// ======= Tambah row ke tabel bawah =======
+function addRowToTable(d){
+  const tr=document.createElement('tr');
+  tr.dataset.id=d.id;
+  tr.innerHTML=`<td>${d.tanggal}</td><td>${d.brand}</td><td>${d.jenis}</td><td>${d.paper}</td>
+  <td>${d.size}</td><td>${d.qty}</td>
+  <td><button class="btn-yellow" onclick="editRow(this)">Edit</button>
+  <button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
+  dataTable.appendChild(tr);
 }
 
-function simpanData(){
- const tanggal=document.getElementById("tanggal").value;
- const brand=document.getElementById("brand").value;
- const rows=document.querySelectorAll("#inputTable tr");
-
- if(!tanggal||!brand){
-   alert("Tanggal & Brand wajib");
-   return;
- }
-
- for(let i=1;i<rows.length;i++){
-   const e=rows[i].querySelectorAll("select,input");
-   if(!e[0].value)continue;
-
-   lastValue={
-     jenis:e[0].value,
-     paper:e[1].value,
-     size:e[2].value,
-     qty:e[3].value
-   };
-
-   document.getElementById("dataTable").insertRow(-1).innerHTML=`
-   <td>${tanggal}</td>
-   <td>${brand}</td>
-   <td>${e[0].value}</td>
-   <td>${e[1].value}</td>
-   <td>${e[2].value}</td>
-   <td>${e[3].value}</td>
-   <td><button class="btn-red" onclick="this.parentElement.parentElement.remove()">Hapus</button></td>`;
- }
-
- document.getElementById("inputTable").innerHTML=`
- <tr>
- <th>Jenis</th>
- <th>Paper</th>
- <th>Size</th>
- <th>Barang Masuk</th>
- <th>Aksi</th>
- </tr>`;
+// ======= Load data awal =======
+async function loadData(){
+  const { data } = await supabase.from("barang_masuk").select("*").order("id",{ascending:false});
+  dataTable.innerHTML='<tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
+  data.forEach(d=>addRowToTable(d));
 }
 
-function exportExcel(){
- let table=document.getElementById("dataTable");
- if(table.rows.length<=1){
-   alert("Data kosong");
-   return;
- }
+// ======= Simpan data baru =======
+async function simpan(){
+  if(!tanggal.value||!brand.value){ alert("Tanggal & Brand wajib diisi"); return; }
+  const rows=[...inputTable.rows].slice(1);
+  if(rows.length===0){ alert("Tidak ada data"); return; }
 
- let data=[];
- for(let i=1;i<table.rows.length;i++){
-  let r=table.rows[i];
-  data.push([
-    r.cells[0].innerText,
-    r.cells[1].innerText,
-    r.cells[2].innerText,
-    r.cells[3].innerText,
-    r.cells[4].innerText,
-    r.cells[5].innerText
-  ]);
- }
+  const dataToInsert = rows.map(r=>{
+    const e=r.querySelectorAll("select,input");
+    return {tanggal:tanggal.value,brand:brand.value,jenis:e[0].value,paper:e[1].value,size:e[2].value,qty:+e[3].value};
+  });
 
- let wb = XLSX.utils.book_new();
- let ws = XLSX.utils.aoa_to_sheet([
-   ["Tanggal","Brand","Jenis","Paper","Size","Barang Masuk"],
-   ...data
- ]);
+  const { error, data } = await supabase.from("barang_masuk").insert(dataToInsert).select();
+  if(error){ alert(error.message); return; }
 
- XLSX.utils.book_append_sheet(wb, ws, "Barang Masuk");
- XLSX.writeFile(wb, "Report_Barang_Masuk.xlsx");
+  inputTable.innerHTML='<tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
+  data.forEach(d=>addRowToTable(d));
+  alert("✅ Data tersimpan");
 }
 
-function kirimWAGroup(){
- const table = document.getElementById("dataTable");
- const rows  = table.querySelectorAll("tr");
+// ======= Edit row =======
+async function editRow(btn){
+  const tr=btn.closest('tr');
+  const id=tr.dataset.id;
+  const tanggalText=tr.cells[0].textContent;
+  const brandText=tr.cells[1].textContent;
+  const jenisText=tr.cells[2].textContent;
+  const paperText=tr.cells[3].textContent;
+  const sizeText=tr.cells[4].textContent;
+  const qtyText=tr.cells[5].textContent;
 
- if(rows.length<=1){
-   alert("Data barang masuk masih kosong");
-   return;
- }
+  tr.innerHTML=`<td><input type="date" value="${tanggalText}"></td>
+  <td><input type="text" value="${brandText}"></td>
+  <td><select>${opt(jenis)}</select></td>
+  <td><select>${opt(paper)}</select></td>
+  <td><select>${opt(size)}</select></td>
+  <td><input type="number" min="1" value="${qtyText}"></td>
+  <td><button class="btn-green" onclick="saveEdit(this)">Simpan</button>
+  <button class="btn-red" onclick="cancelEdit(this,'${tanggalText}','${brandText}','${jenisText}','${paperText}','${sizeText}','${qtyText}')">Batal</button></td>`;
 
- let hasil = {};
-
- for(let i=1;i<rows.length;i++){
-   let c = rows[i].cells;
-   let tanggal = c[0].innerText;
-   let brand   = c[1].innerText;
-   let detail  = `• ${c[2].innerText} | ${c[3].innerText} | ${c[4].innerText} | Qty ${c[5].innerText}`;
-
-   if(!hasil[brand]){
-     hasil[brand] = { tanggal, list: [] };
-   }
-   hasil[brand].list.push(detail);
- }
-
- let pesan = "";
- for(let brand in hasil){
-   pesan +=
-`📦 *REPORT BARANG MASUK*
-📅 ${hasil[brand].tanggal}
-🏷️ Brand: ${brand}
-
-${hasil[brand].list.join("%0A")}
-
---------------------
-`;
- }
-
- let linkWA = "https://api.whatsapp.com/send?text=" + encodeURIComponent(pesan);
- window.open(linkWA, "_blank");
+  tr.cells[2].querySelector('select').value=jenisText;
+  tr.cells[3].querySelector('select').value=paperText;
+  tr.cells[4].querySelector('select').value=sizeText;
 }
 
+// ======= Cancel edit =======
+function cancelEdit(btn,tanggal,brand,jenis,paper,size,qty){
+  const tr=btn.closest('tr');
+  tr.innerHTML=`<td>${tanggal}</td><td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
+  <td><button class="btn-yellow" onclick="editRow(this)">Edit</button>
+  <button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
+}
+
+// ======= Save edit =======
+async function saveEdit(btn){
+  const tr=btn.closest('tr');
+  const id=tr.dataset.id;
+  const tanggal=tr.cells[0].querySelector('input').value;
+  const brand=tr.cells[1].querySelector('input').value;
+  const jenis=tr.cells[2].querySelector('select').value;
+  const paper=tr.cells[3].querySelector('select').value;
+  const size=tr.cells[4].querySelector('select').value;
+  const qty=tr.cells[5].querySelector('input').value;
+
+  const { error }=await supabase.from("barang_masuk").update({tanggal,brand,jenis,paper,size,qty:+qty}).eq('id',id);
+  if(error){ alert(error.message); return; }
+
+  tr.innerHTML=`<td>${tanggal}</td><td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
+  <td><button class="btn-yellow" onclick="editRow(this)">Edit</button>
+  <button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
+}
+
+// ======= Delete row =======
+async function deleteRow(btn){
+  if(!confirm("Yakin hapus data ini?")) return;
+  const tr=btn.closest('tr');
+  const id=tr.dataset.id;
+  const { error }=await supabase.from("barang_masuk").delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  tr.remove();
+}
+
+// ======= Export Excel =======
+function exportExcelTable(){
+  const ws=XLSX.utils.table_to_sheet(dataTable);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws,"Barang Masuk");
+  XLSX.writeFile(wb,"barang_masuk.xlsx");
+}
+
+// ======= Kirim WA format cantik =======
+function sendWATable(){
+  const tanggalText = dataTable.rows[1] ? dataTable.rows[1].cells[0].textContent : '';
+  const brandText = dataTable.rows[1] ? dataTable.rows[1].cells[1].textContent : '';
+
+  let txt = `📦 *REPORT BARANG MASUK*\n━━━━━━━━━━━━━━━━━━━━\n\n`;
+  if(tanggalText) txt += `📅 *${tanggalText}*\n`;
+  if(brandText) txt += `🏷️ Brand: *${brandText}*\n\n`;
+
+  [...dataTable.rows].slice(1).forEach(r=>{
+    txt += `• ${r.cells[2].textContent} | ${r.cells[3].textContent} | ${r.cells[4].textContent} | Qty: *${r.cells[5].textContent}*\n`;
+  });
+
+  const now = new Date();
+  const tgl = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear();
+  const jam = now.getHours().toString().padStart(2,'0') + '.' + now.getMinutes().toString().padStart(2,'0') + '.' + now.getSeconds().toString().padStart(2,'0');
+
+  txt += `\n━━━━━━━━━━━━━━━━━━━━\n🕐 Generated: ${tgl}, ${jam}`;
+
+  window.open("https://wa.me/?text="+encodeURIComponent(txt));
+}
+
+// ======= Event tombol =======
+btnTambah.onclick=tambahBaris;
+btnSimpan.onclick=simpan;
+btnExcelTable.onclick=exportExcelTable;
+btnWATable.onclick=sendWATable;
+
+// ======= Realtime subscription =======
+supabase.channel('public:barang_masuk')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'barang_masuk' }, payload=>{
+    // clear dan reload
+    loadData();
+  })
+  .subscribe();
+
+// ======= Load awal =======
+loadData();
+
+});
 </script>
 </body>
 </html>
