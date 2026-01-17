@@ -42,13 +42,11 @@ th{background:#eee}
 <script>
 document.addEventListener("DOMContentLoaded", ()=>{
 
-// =================== Supabase ===================
 const supabase = window.supabase.createClient(
   "https://dggspzjibisapdaowkkj.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY"
 );
 
-// =================== opsi lengkap ===================
 const jenis=["BOOKLET","FILTER WHITE","FILTER BROWN","DISPLAY","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER",
 "MIKA","STICKER MIKA","STICKER BULAT BESAR","STICKER BULAT KECIL","TUBE","FILTER 21","FILTER 26",
 "FILTER 30","HOLDER S","HOLDER M","HOLDER L","HOLDER 9X9","HOLDER 10X10"];
@@ -58,7 +56,6 @@ const size=["1/4","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PACK"
 "729 CONES/BOX","900 CONES/BOX","800 CONES/BOX","1000 CONES/BOX"];
 const opt=l=>'<option></option>'+l.map(v=>`<option>${v}</option>`).join('');
 
-// =================== Tambah baris input ===================
 function tambahBaris(){
   const r=inputTable.insertRow(-1);
   r.innerHTML=`<td><select>${opt(jenis)}</select></td>
@@ -68,7 +65,6 @@ function tambahBaris(){
   <td><button class="btn-red" onclick="this.closest('tr').remove()">X</button></td>`;
 }
 
-// =================== Tambah row ke tabel bawah ===================
 function addRowToTable(d){
   const tr=document.createElement('tr');
   tr.dataset.id=d.id;
@@ -79,14 +75,12 @@ function addRowToTable(d){
   dataTable.appendChild(tr);
 }
 
-// =================== Load data awal ===================
 async function loadData(){
   const { data } = await supabase.from("barang_masuk").select("*").order("id",{ascending:false});
   dataTable.innerHTML='<tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
   data.forEach(d=>addRowToTable(d));
 }
 
-// =================== Simpan data baru ===================
 async function simpan(){
   if(!tanggal.value||!brand.value){ alert("Tanggal & Brand wajib diisi"); return; }
   const rows=[...inputTable.rows].slice(1);
@@ -105,7 +99,6 @@ async function simpan(){
   alert("✅ Data tersimpan");
 }
 
-// =================== Edit / Save / Delete ===================
 async function editRow(btn){
   const tr=btn.closest('tr');
   const id=tr.dataset.id;
@@ -159,62 +152,56 @@ async function deleteRow(btn){
   if(!confirm("Yakin hapus data ini?")) return;
   const tr=btn.closest('tr');
   const id=tr.dataset.id;
-  const { error}=await supabase.from("barang_masuk").delete().eq('id',id);
+  const { error }=await supabase.from("barang_masuk").delete().eq('id',id);
   if(error){ alert(error.message); return; }
   tr.remove();
 }
 
-// =================== Export Excel ===================
+// ================= Export Excel aman untuk Size ===================
 function exportExcelTable(){
-  const ws=XLSX.utils.table_to_sheet(dataTable);
+  const rows = [...dataTable.rows].slice(1);
+  const data = rows.map(r=>({
+    Tanggal: r.cells[0].textContent,
+    Brand: r.cells[1].textContent,
+    Jenis: r.cells[2].textContent,
+    Paper: r.cells[3].textContent,
+    Size: "'" + r.cells[4].textContent, // paksa string
+    Qty: r.cells[5].textContent
+  }));
+  const ws=XLSX.utils.json_to_sheet(data);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws,"Barang Masuk");
   XLSX.writeFile(wb,"barang_masuk.xlsx");
 }
 
-// =================== Kirim WA dengan Group by Brand & Tanggal ===================
+// ================= Kirim WA per Brand & Tanggal ===================
 function sendWATable(){
-  const rows = [...dataTable.rows].slice(1);
-  if(rows.length===0){ alert("Tidak ada data"); return; }
+  const tanggalValue = tanggal.value;
+  const brandValue = brand.value.trim();
+  if(!tanggalValue || !brandValue){ alert("Isi tanggal & brand untuk WA"); return; }
 
-  // buat grouping { "2026-01-10|ROYO": [items...] }
-  const grouped = {};
-  rows.forEach(r=>{
-    const key = `${r.cells[0].textContent}|${r.cells[1].textContent}`;
-    if(!grouped[key]) grouped[key]=[];
-    grouped[key].push({
-      jenis: r.cells[2].textContent,
-      paper: r.cells[3].textContent,
-      size: r.cells[4].textContent,
-      qty: r.cells[5].textContent
+  let txt = "📦 *REPORT BARANG MASUK*\n━━━━━━━━━━━━━━━━━━━━\n";
+  txt += `📅 *${tanggalValue}*\n🏷️ Brand: *${brandValue}*\n\n`;
+
+  [...dataTable.rows].slice(1)
+    .filter(r=>r.cells[0].textContent===tanggalValue && r.cells[1].textContent===brandValue)
+    .forEach(r=>{
+      txt += `• ${r.cells[2].textContent} | ${r.cells[3].textContent} | ${r.cells[4].textContent} | Qty: *${r.cells[5].textContent}*\n`;
     });
-  });
 
-  let txt = "📦 *REPORT BARANG MASUK*\n━━━━━━━━━━━━━━━━━━━━\n\n";
-
-  for(const k in grouped){
-    const [tgl, brand] = k.split("|");
-    txt += `📅 *${tgl}*\n🏷️ Brand: *${brand}*\n\n`;
-    grouped[k].forEach(item=>{
-      txt += `• ${item.jenis} | ${item.paper} | ${item.size} | Qty: *${item.qty}*\n`;
-    });
-    txt += "\n━━━━━━━━━━━━━━━━━━━━\n\n";
-  }
-
+  txt += "\n━━━━━━━━━━━━━━━━━━━━\n";
   const now = new Date();
-  const genTime = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}, ${now.getHours()}.${now.getMinutes()}.${now.getSeconds()}`;
-  txt += `🕐 Generated: ${genTime}`;
+  txt += `🕐 Generated: ${now.toLocaleDateString()} , ${now.toLocaleTimeString()}`;
 
   window.open("https://wa.me/?text="+encodeURIComponent(txt));
 }
 
-// =================== Event tombol ===================
+// ================= Tombol ===================
 btnTambah.onclick=tambahBaris;
 btnSimpan.onclick=simpan;
 btnExcelTable.onclick=exportExcelTable;
 btnWATable.onclick=sendWATable;
 
-// =================== Load data awal ===================
 loadData();
 
 });
