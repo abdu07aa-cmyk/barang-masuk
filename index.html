@@ -21,7 +21,6 @@ th{background:#eee}
 <body>
 
 <h3>📦 Report Barang Masuk (Final)</h3>
-
 <input type="date" id="tanggal">
 <input type="text" id="brand" placeholder="Nama Brand">
 
@@ -43,13 +42,13 @@ th{background:#eee}
 <script>
 document.addEventListener("DOMContentLoaded", ()=>{
 
-// ======= Supabase =======
+// =================== Supabase ===================
 const supabase = window.supabase.createClient(
   "https://dggspzjibisapdaowkkj.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY"
 );
 
-// ======= Data opsi =======
+// =================== opsi lengkap ===================
 const jenis=["BOOKLET","FILTER WHITE","FILTER BROWN","DISPLAY","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER",
 "MIKA","STICKER MIKA","STICKER BULAT BESAR","STICKER BULAT KECIL","TUBE","FILTER 21","FILTER 26",
 "FILTER 30","HOLDER S","HOLDER M","HOLDER L","HOLDER 9X9","HOLDER 10X10"];
@@ -59,7 +58,7 @@ const size=["1/4","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PACK"
 "729 CONES/BOX","900 CONES/BOX","800 CONES/BOX","1000 CONES/BOX"];
 const opt=l=>'<option></option>'+l.map(v=>`<option>${v}</option>`).join('');
 
-// ======= Tambah baris input =======
+// =================== Tambah baris input ===================
 function tambahBaris(){
   const r=inputTable.insertRow(-1);
   r.innerHTML=`<td><select>${opt(jenis)}</select></td>
@@ -69,7 +68,7 @@ function tambahBaris(){
   <td><button class="btn-red" onclick="this.closest('tr').remove()">X</button></td>`;
 }
 
-// ======= Tambah row ke tabel bawah =======
+// =================== Tambah row ke tabel bawah ===================
 function addRowToTable(d){
   const tr=document.createElement('tr');
   tr.dataset.id=d.id;
@@ -80,14 +79,14 @@ function addRowToTable(d){
   dataTable.appendChild(tr);
 }
 
-// ======= Load data awal =======
+// =================== Load data awal ===================
 async function loadData(){
   const { data } = await supabase.from("barang_masuk").select("*").order("id",{ascending:false});
   dataTable.innerHTML='<tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
   data.forEach(d=>addRowToTable(d));
 }
 
-// ======= Simpan data baru =======
+// =================== Simpan data baru ===================
 async function simpan(){
   if(!tanggal.value||!brand.value){ alert("Tanggal & Brand wajib diisi"); return; }
   const rows=[...inputTable.rows].slice(1);
@@ -106,7 +105,7 @@ async function simpan(){
   alert("✅ Data tersimpan");
 }
 
-// ======= Edit row =======
+// =================== Edit / Save / Delete ===================
 async function editRow(btn){
   const tr=btn.closest('tr');
   const id=tr.dataset.id;
@@ -131,7 +130,6 @@ async function editRow(btn){
   tr.cells[4].querySelector('select').value=sizeText;
 }
 
-// ======= Cancel edit =======
 function cancelEdit(btn,tanggal,brand,jenis,paper,size,qty){
   const tr=btn.closest('tr');
   tr.innerHTML=`<td>${tanggal}</td><td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
@@ -139,7 +137,6 @@ function cancelEdit(btn,tanggal,brand,jenis,paper,size,qty){
   <button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
 }
 
-// ======= Save edit =======
 async function saveEdit(btn){
   const tr=btn.closest('tr');
   const id=tr.dataset.id;
@@ -158,17 +155,16 @@ async function saveEdit(btn){
   <button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
 }
 
-// ======= Delete row =======
 async function deleteRow(btn){
   if(!confirm("Yakin hapus data ini?")) return;
   const tr=btn.closest('tr');
   const id=tr.dataset.id;
-  const { error }=await supabase.from("barang_masuk").delete().eq('id',id);
+  const { error}=await supabase.from("barang_masuk").delete().eq('id',id);
   if(error){ alert(error.message); return; }
   tr.remove();
 }
 
-// ======= Export Excel =======
+// =================== Export Excel ===================
 function exportExcelTable(){
   const ws=XLSX.utils.table_to_sheet(dataTable);
   const wb=XLSX.utils.book_new();
@@ -176,43 +172,49 @@ function exportExcelTable(){
   XLSX.writeFile(wb,"barang_masuk.xlsx");
 }
 
-// ======= Kirim WA format cantik =======
+// =================== Kirim WA dengan Group by Brand & Tanggal ===================
 function sendWATable(){
-  const tanggalText = dataTable.rows[1] ? dataTable.rows[1].cells[0].textContent : '';
-  const brandText = dataTable.rows[1] ? dataTable.rows[1].cells[1].textContent : '';
+  const rows = [...dataTable.rows].slice(1);
+  if(rows.length===0){ alert("Tidak ada data"); return; }
 
-  let txt = `📦 *REPORT BARANG MASUK*\n━━━━━━━━━━━━━━━━━━━━\n\n`;
-  if(tanggalText) txt += `📅 *${tanggalText}*\n`;
-  if(brandText) txt += `🏷️ Brand: *${brandText}*\n\n`;
-
-  [...dataTable.rows].slice(1).forEach(r=>{
-    txt += `• ${r.cells[2].textContent} | ${r.cells[3].textContent} | ${r.cells[4].textContent} | Qty: *${r.cells[5].textContent}*\n`;
+  // buat grouping { "2026-01-10|ROYO": [items...] }
+  const grouped = {};
+  rows.forEach(r=>{
+    const key = `${r.cells[0].textContent}|${r.cells[1].textContent}`;
+    if(!grouped[key]) grouped[key]=[];
+    grouped[key].push({
+      jenis: r.cells[2].textContent,
+      paper: r.cells[3].textContent,
+      size: r.cells[4].textContent,
+      qty: r.cells[5].textContent
+    });
   });
 
-  const now = new Date();
-  const tgl = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear();
-  const jam = now.getHours().toString().padStart(2,'0') + '.' + now.getMinutes().toString().padStart(2,'0') + '.' + now.getSeconds().toString().padStart(2,'0');
+  let txt = "📦 *REPORT BARANG MASUK*\n━━━━━━━━━━━━━━━━━━━━\n\n";
 
-  txt += `\n━━━━━━━━━━━━━━━━━━━━\n🕐 Generated: ${tgl}, ${jam}`;
+  for(const k in grouped){
+    const [tgl, brand] = k.split("|");
+    txt += `📅 *${tgl}*\n🏷️ Brand: *${brand}*\n\n`;
+    grouped[k].forEach(item=>{
+      txt += `• ${item.jenis} | ${item.paper} | ${item.size} | Qty: *${item.qty}*\n`;
+    });
+    txt += "\n━━━━━━━━━━━━━━━━━━━━\n\n";
+  }
+
+  const now = new Date();
+  const genTime = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}, ${now.getHours()}.${now.getMinutes()}.${now.getSeconds()}`;
+  txt += `🕐 Generated: ${genTime}`;
 
   window.open("https://wa.me/?text="+encodeURIComponent(txt));
 }
 
-// ======= Event tombol =======
+// =================== Event tombol ===================
 btnTambah.onclick=tambahBaris;
 btnSimpan.onclick=simpan;
 btnExcelTable.onclick=exportExcelTable;
 btnWATable.onclick=sendWATable;
 
-// ======= Realtime subscription =======
-supabase.channel('public:barang_masuk')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'barang_masuk' }, payload=>{
-    // clear dan reload
-    loadData();
-  })
-  .subscribe();
-
-// ======= Load awal =======
+// =================== Load data awal ===================
 loadData();
 
 });
