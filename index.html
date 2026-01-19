@@ -47,7 +47,7 @@ const supabase = window.supabase.createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY"
 );
 
-const jenis=["BOOKLET","FILTER WHITE","FILTER BROWN","DISPLAY","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER",
+const jenis=["BOOKLET","FILTER WHITE","FILTER BROWN","FILTER PRINTED","DISPLAY","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER",
 "MIKA","STICKER MIKA","STICKER BULAT BESAR","STICKER BULAT KECIL","TUBE","FILTER 21","FILTER 26",
 "FILTER 30","HOLDER S","HOLDER M","HOLDER L","HOLDER 9X9","HOLDER 10X10"];
 const paper=["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","42 LEAVES","50 LEAVES","51 LEAVES","52 LEAVES",
@@ -99,7 +99,7 @@ async function simpan(){
   alert("✅ Data tersimpan");
 }
 
-async function editRow(btn){
+window.editRow = async function(btn){
   const tr=btn.closest('tr');
   const id=tr.dataset.id;
   const tanggalText=tr.cells[0].textContent;
@@ -123,14 +123,14 @@ async function editRow(btn){
   tr.cells[4].querySelector('select').value=sizeText;
 }
 
-function cancelEdit(btn,tanggal,brand,jenis,paper,size,qty){
+window.cancelEdit = function(btn,tanggal,brand,jenis,paper,size,qty){
   const tr=btn.closest('tr');
   tr.innerHTML=`<td>${tanggal}</td><td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
   <td><button class="btn-yellow" onclick="editRow(this)">Edit</button>
   <button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
 }
 
-async function saveEdit(btn){
+window.saveEdit = async function(btn){
   const tr=btn.closest('tr');
   const id=tr.dataset.id;
   const tanggal=tr.cells[0].querySelector('input').value;
@@ -148,7 +148,7 @@ async function saveEdit(btn){
   <button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
 }
 
-async function deleteRow(btn){
+window.deleteRow = async function(btn){
   if(!confirm("Yakin hapus data ini?")) return;
   const tr=btn.closest('tr');
   const id=tr.dataset.id;
