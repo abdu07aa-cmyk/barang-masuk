@@ -40,6 +40,18 @@ th{background:#eee}
 <button id="btnWATable" class="btn-green">📲 Kirim WA</button>
 
 <script>
+  function formatTanggal(tgl){
+  if(!tgl) return "";
+  const [y,m,d] = tgl.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+function formatTanggalDB(tgl){
+  // dari DD/MM/YYYY ke YYYY-MM-DD (kalau dibutuhkan)
+  const [d,m,y] = tgl.split("/");
+  return `${y}-${m}-${d}`;
+}
+
 document.addEventListener("DOMContentLoaded", ()=>{
 
 const supabase = window.supabase.createClient(
@@ -68,7 +80,8 @@ function tambahBaris(){
 function addRowToTable(d){
   const tr=document.createElement('tr');
   tr.dataset.id=d.id;
-  tr.innerHTML=`<td>${d.tanggal}</td><td>${d.brand}</td><td>${d.jenis}</td><td>${d.paper}</td>
+  tr.innerHTML=`<td>${formatTanggal(d.tanggal)}</td>
+<td>${d.brand}</td><td>${d.jenis}</td><td>${d.paper}</td>
   <td>${d.size}</td><td>${d.qty}</td>
   <td><button class="btn-yellow" onclick="editRow(this)">Edit</button>
   <button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
@@ -102,7 +115,7 @@ async function simpan(){
 window.editRow = async function(btn){
   const tr=btn.closest('tr');
   const id=tr.dataset.id;
-  const tanggalText=tr.cells[0].textContent;
+  const tanggalText = formatTanggalDB(tr.cells[0].textContent);
   const brandText=tr.cells[1].textContent;
   const jenisText=tr.cells[2].textContent;
   const paperText=tr.cells[3].textContent;
@@ -125,7 +138,8 @@ window.editRow = async function(btn){
 
 window.cancelEdit = function(btn,tanggal,brand,jenis,paper,size,qty){
   const tr=btn.closest('tr');
-  tr.innerHTML=`<td>${tanggal}</td><td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
+  tr.innerHTML=`<td>${formatTanggal(tanggal)}</td>
+<td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
   <td><button class="btn-yellow" onclick="editRow(this)">Edit</button>
   <button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
 }
@@ -143,7 +157,8 @@ window.saveEdit = async function(btn){
   const { error }=await supabase.from("barang_masuk").update({tanggal,brand,jenis,paper,size,qty:+qty}).eq('id',id);
   if(error){ alert(error.message); return; }
 
-  tr.innerHTML=`<td>${tanggal}</td><td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
+  tr.innerHTML=`<td>${formatTanggal(tanggal)}</td>
+<td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
   <td><button class="btn-yellow" onclick="editRow(this)">Edit</button>
   <button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
 }
@@ -188,7 +203,7 @@ function exportExcelTable(){
 
 // ================= Kirim WA per Brand & Tanggal ===================
 function sendWATable(){
-  const tanggalValue = tanggal.value;
+ const tanggalValue = formatTanggal(tanggal.value);
   const brandValue = brand.value.trim();
   if(!tanggalValue || !brandValue){ alert("Isi tanggal & brand untuk WA"); return; }
 
