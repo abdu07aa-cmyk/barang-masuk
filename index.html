@@ -130,7 +130,6 @@ async function loadData(){
   data.forEach(d=>addRowToTable(d));
   isiFilter(); 
 
-  // RESET semua filter supaya semua data terlihat
   filterTanggal.value = "";
   filterBrand.value = "";
   filterJenis.value = "";
@@ -155,7 +154,7 @@ async function simpan(){
 
   inputTable.innerHTML='<tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
   data.forEach(d=>addRowToTable(d));
-  filterTable(); // pastikan filter tetap berlaku
+  filterTable();
   alert("✅ Data tersimpan");
 }
 
@@ -209,7 +208,7 @@ window.saveEdit = async function(btn){
 <td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
 <td><button class="btn-yellow" onclick="editRow(this)">Edit</button>
 <button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
-  filterTable(); // tetap apply filter
+  filterTable();
 }
 
 window.deleteRow = async function(btn){
@@ -237,18 +236,12 @@ function exportExcelTable(){
 
   const ws = XLSX.utils.json_to_sheet(data);
 
-  const range = XLSX.utils.decode_range(ws['!ref']);
-  for(let R=1; R<=range.e.r; R++){
-    const cell = ws[XLSX.utils.encode_cell({r:R, c:4})];
-    if(cell) cell.t="s";
-  }
-
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Barang Masuk");
   XLSX.writeFile(wb,"barang_masuk_filtered.xlsx");
 }
 
-// ================= WA Filtered ===================
+// ================= WA Filtered (perbaikan) ===================
 function sendWATable(){
   const rows = [...dataTable.rows].slice(1).filter(r=>r.style.display!=="none");
   if(rows.length===0){ 
@@ -258,7 +251,14 @@ function sendWATable(){
 
   let txt = "📦 *REPORT BARANG MASUK*\n━━━━━━━━━━━━━━━━━━━━\n";
   rows.forEach(r=>{
-    txt += `• ${r.cells[1].textContent} | ${r.cells[2].textContent} | ${r.cells[3].textContent} | ${r.cells[4].textContent} | Qty: *${r.cells[5].textContent}*\n`;
+    // PASTIKAN BRAND SELALU DIAMBIL
+    const brand = r.cells[1].textContent || "-";
+    const jenis = r.cells[2].textContent || "-";
+    const paper = r.cells[3].textContent || "-";
+    const size = r.cells[4].textContent || "-";
+    const qty = r.cells[5].textContent || "0";
+
+    txt += `• ${brand} | ${jenis} | ${paper} | ${size} | Qty: *${qty}*\n`;
   });
 
   txt += "\n━━━━━━━━━━━━━━━━━━━━\n";
