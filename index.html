@@ -251,11 +251,14 @@ function exportExcelTable(){
 // ================= WA Filtered ===================
 function sendWATable(){
   const rows = [...dataTable.rows].slice(1).filter(r=>r.style.display!=="none");
-  if(rows.length===0){ alert("Tidak ada data terfilter"); return; }
+  if(rows.length===0){ 
+    alert("Tidak ada data terfilter"); 
+    return; 
+  }
 
   let txt = "📦 *REPORT BARANG MASUK*\n━━━━━━━━━━━━━━━━━━━━\n";
   rows.forEach(r=>{
-    txt += `• ${r.cells[2].textContent} | ${r.cells[3].textContent} | ${r.cells[4].textContent} | Qty: *${r.cells[5].textContent}*\n`;
+    txt += `• ${r.cells[1].textContent} | ${r.cells[2].textContent} | ${r.cells[3].textContent} | ${r.cells[4].textContent} | Qty: *${r.cells[5].textContent}*\n`;
   });
 
   txt += "\n━━━━━━━━━━━━━━━━━━━━\n";
