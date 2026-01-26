@@ -74,13 +74,14 @@ const size=["1 1/4","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PAC
 "729 CONES/BOX","900 CONES/BOX","800 CONES/BOX","1000 CONES/BOX"];
 const opt=l=>'<option></option>'+l.map(v=>`<option>${v}</option>`).join('');
 
+// ================= Filter Select ===================
 function isiFilter(){
   filterJenis.innerHTML = '<option value="">Semua Jenis</option>'+jenis.map(v=>`<option>${v}</option>`).join('');
   filterPaper.innerHTML = '<option value="">Semua Paper</option>'+paper.map(v=>`<option>${v}</option>`).join('');
   filterSize.innerHTML = '<option value="">Semua Size</option>'+size.map(v=>`<option>${v}</option>`).join('');
 }
 
-// ================= Filter ===================
+// ================= Filter Table ===================
 function filterTable(){
   const tgl = filterTanggal.value ? formatTanggal(filterTanggal.value) : "";
   const brand = filterBrand.value.toLowerCase();
@@ -127,7 +128,15 @@ async function loadData(){
   const { data } = await supabase.from("barang_masuk").select("*").order("id",{ascending:false});
   dataTable.innerHTML='<tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
   data.forEach(d=>addRowToTable(d));
-  isiFilter(); // update filter options
+  isiFilter(); 
+
+  // RESET semua filter supaya semua data terlihat
+  filterTanggal.value = "";
+  filterBrand.value = "";
+  filterJenis.value = "";
+  filterPaper.value = "";
+  filterSize.value = "";
+  filterTable(); 
 }
 
 // ================= Simpan Data ===================
@@ -146,6 +155,7 @@ async function simpan(){
 
   inputTable.innerHTML='<tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
   data.forEach(d=>addRowToTable(d));
+  filterTable(); // pastikan filter tetap berlaku
   alert("✅ Data tersimpan");
 }
 
@@ -199,9 +209,9 @@ window.saveEdit = async function(btn){
 <td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
 <td><button class="btn-yellow" onclick="editRow(this)">Edit</button>
 <button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
+  filterTable(); // tetap apply filter
 }
 
-// ================= Delete ===================
 window.deleteRow = async function(btn){
   if(!confirm("Yakin hapus data ini?")) return;
   const tr=btn.closest('tr');
@@ -227,7 +237,6 @@ function exportExcelTable(){
 
   const ws = XLSX.utils.json_to_sheet(data);
 
-  // Paksa kolom Size jadi TEXT
   const range = XLSX.utils.decode_range(ws['!ref']);
   for(let R=1; R<=range.e.r; R++){
     const cell = ws[XLSX.utils.encode_cell({r:R, c:4})];
