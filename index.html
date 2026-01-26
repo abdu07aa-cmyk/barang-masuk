@@ -165,13 +165,25 @@ function exportExcelTable(){
     Brand: r.cells[1].textContent,
     Jenis: r.cells[2].textContent,
     Paper: r.cells[3].textContent,
-    Size: "'" + r.cells[4].textContent, // paksa string
-    Qty: r.cells[5].textContent
+    Size: r.cells[4].textContent,
+    Qty: Number(r.cells[5].textContent)
   }));
-  const ws=XLSX.utils.json_to_sheet(data);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws,"Barang Masuk");
+
+  const ws = XLSX.utils.json_to_sheet(data);
+
+  // Paksa kolom Size jadi TEXT
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for(let R=1; R<=range.e.r; R++){
+    const cell = ws[XLSX.utils.encode_cell({r:R, c:4})];
+    if(cell){
+      cell.t = "s"; // string
+    }
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Barang Masuk");
   XLSX.writeFile(wb,"barang_masuk.xlsx");
+
 }
 
 // ================= Kirim WA per Brand & Tanggal ===================
