@@ -226,20 +226,32 @@ window.deleteRow = async function(btn){
 
 // ================= Export Excel Filtered ===================
 function exportExcelTable(){
-  const rows = [...dataTable.rows].slice(1).filter(r=>r.style.display!=="none");
-  if(rows.length===0){ alert("Tidak ada data terfilter"); return; }
+  let rows = [...dataTable.rows]
+    .slice(1)
+    .filter(r => r.style.display !== "none");
 
-const data = rows.map(r=>({
-  Tanggal: r.cells[0].textContent, // dd/mm/yyyy (tampilan rapi)
-  Brand: r.cells[1].textContent,
-  Jenis: r.cells[2].textContent,
-  Paper: r.cells[3].textContent,
-  Size: r.cells[4].textContent,
-  Qty: Number(r.cells[5].textContent)
-}));
+  if(rows.length === 0){
+    alert("Tidak ada data terfilter");
+    return;
+  }
+
+  // 🔥 URUTKAN TANGGAL UNTUK EXCEL (LAMA → BARU)
+  rows.sort((a,b)=>{
+    const [da,ma,ya] = a.cells[0].textContent.split('/');
+    const [db,mb,yb] = b.cells[0].textContent.split('/');
+    return new Date(ya,ma-1,da) - new Date(yb,mb-1,db);
+  });
+
+  const data = rows.map(r=>({
+    Tanggal: r.cells[0].textContent,
+    Brand: r.cells[1].textContent,
+    Jenis: r.cells[2].textContent,
+    Paper: r.cells[3].textContent,
+    Size: r.cells[4].textContent,
+    Qty: Number(r.cells[5].textContent)
+  }));
 
   const ws = XLSX.utils.json_to_sheet(data);
-
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Barang Masuk");
   XLSX.writeFile(wb,"barang_masuk_filtered.xlsx");
