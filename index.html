@@ -125,7 +125,11 @@ function addRowToTable(d){
 
 // ================= Load Data ===================
 async function loadData(){
-  const { data } = await supabase.from("barang_masuk").select("*").order("id",{ascending:false});
+ const { data } = await supabase
+  .from("barang_masuk")
+  .select("*")
+  .order("tanggal", { ascending: false })
+  .order("id", { ascending: false });
   dataTable.innerHTML='<tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
   data.forEach(d=>addRowToTable(d));
   isiFilter(); 
@@ -225,14 +229,14 @@ function exportExcelTable(){
   const rows = [...dataTable.rows].slice(1).filter(r=>r.style.display!=="none");
   if(rows.length===0){ alert("Tidak ada data terfilter"); return; }
 
-  const data = rows.map(r=>({
-    Tanggal: r.cells[0].textContent,
-    Brand: r.cells[1].textContent,
-    Jenis: r.cells[2].textContent,
-    Paper: r.cells[3].textContent,
-    Size: r.cells[4].textContent,
-    Qty: Number(r.cells[5].textContent)
-  }));
+const data = rows.map(r=>({
+  Tanggal: r.cells[0].textContent, // dd/mm/yyyy (tampilan rapi)
+  Brand: r.cells[1].textContent,
+  Jenis: r.cells[2].textContent,
+  Paper: r.cells[3].textContent,
+  Size: r.cells[4].textContent,
+  Qty: Number(r.cells[5].textContent)
+}));
 
   const ws = XLSX.utils.json_to_sheet(data);
 
