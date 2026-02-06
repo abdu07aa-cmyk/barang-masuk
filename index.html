@@ -163,39 +163,40 @@ async function simpan(){
 }
 
 // ================= Edit & Delete ===================
-window.editRow = async function(btn){
+
+window.editRow = function(btn){
   const tr = btn.closest('tr');
-
-  // simpan nilai awal
-  tr.dataset.oldTanggal = formatTanggalDB(tr.cells[0].textContent);
-  tr.dataset.oldBrand   = tr.cells[1].textContent;
-
   const id = tr.dataset.id;
-  const tanggalText = tr.dataset.oldTanggal;
-  const brandText = tr.dataset.oldBrand;
-  ...
-  const tr=btn.closest('tr');
-  const id=tr.dataset.id;
+
   const tanggalText = formatTanggalDB(tr.cells[0].textContent);
-  const brandText=tr.cells[1].textContent;
-  const jenisText=tr.cells[2].textContent;
-  const paperText=tr.cells[3].textContent;
-  const sizeText=tr.cells[4].textContent;
-  const qtyText=tr.cells[5].textContent;
+  const brandText   = tr.cells[1].textContent;
+  const jenisText   = tr.cells[2].textContent;
+  const paperText   = tr.cells[3].textContent;
+  const sizeText    = tr.cells[4].textContent;
+  const qtyText     = tr.cells[5].textContent;
 
-  tr.innerHTML=`<td><input type="date" value="${tanggalText}"></td>
-<td><input type="text" value="${brandText}"></td>
-<td><select>${opt(jenis)}</select></td>
-<td><select>${opt(paper)}</select></td>
-<td><select>${opt(size)}</select></td>
-<td><input type="number" min="1" value="${qtyText}"></td>
-<td><button class="btn-green" onclick="saveEdit(this)">Simpan</button>
-<button class="btn-red" onclick="cancelEdit(this,'${tanggalText}','${brandText}','${jenisText}','${paperText}','${sizeText}','${qtyText}')">Batal</button></td>`;
+  // simpan data awal untuk warning
+  tr.dataset.oldTanggal = tanggalText;
+  tr.dataset.oldBrand   = brandText;
 
-  tr.cells[2].querySelector('select').value=jenisText;
-  tr.cells[3].querySelector('select').value=paperText;
-  tr.cells[4].querySelector('select').value=sizeText;
-}
+  tr.innerHTML = `
+    <td><input type="date" value="${tanggalText}"></td>
+    <td><input type="text" value="${brandText}"></td>
+    <td><select>${opt(jenis)}</select></td>
+    <td><select>${opt(paper)}</select></td>
+    <td><select>${opt(size)}</select></td>
+    <td><input type="number" min="1" value="${qtyText}"></td>
+    <td>
+      <button class="btn-green" onclick="saveEdit(this)">Simpan</button>
+      <button class="btn-red" onclick="cancelEdit(this,'${tanggalText}','${brandText}','${jenisText}','${paperText}','${sizeText}','${qtyText}')">Batal</button>
+    </td>
+  `;
+
+  tr.cells[2].querySelector('select').value = jenisText;
+  tr.cells[3].querySelector('select').value = paperText;
+  tr.cells[4].querySelector('select').value = sizeText;
+};
+
 
 window.cancelEdit = function(btn,tanggal,brand,jenis,paper,size,qty){
   const tr=btn.closest('tr');
