@@ -164,6 +164,16 @@ async function simpan(){
 
 // ================= Edit & Delete ===================
 window.editRow = async function(btn){
+  const tr = btn.closest('tr');
+
+  // simpan nilai awal
+  tr.dataset.oldTanggal = formatTanggalDB(tr.cells[0].textContent);
+  tr.dataset.oldBrand   = tr.cells[1].textContent;
+
+  const id = tr.dataset.id;
+  const tanggalText = tr.dataset.oldTanggal;
+  const brandText = tr.dataset.oldBrand;
+  ...
   const tr=btn.closest('tr');
   const id=tr.dataset.id;
   const tanggalText = formatTanggalDB(tr.cells[0].textContent);
@@ -204,6 +214,18 @@ window.saveEdit = async function(btn){
   const paper=tr.cells[3].querySelector('select').value;
   const size=tr.cells[4].querySelector('select').value;
   const qty=tr.cells[5].querySelector('input').value;
+  const oldTanggal = tr.dataset.oldTanggal;
+const oldBrand   = tr.dataset.oldBrand;
+
+if(tanggal !== oldTanggal || brand !== oldBrand){
+  const ok = confirm(
+    "⚠️ PERHATIAN\n\n" +
+    "Tanggal / Brand berubah.\n" +
+    "Perubahan ini HANYA berlaku untuk baris ini.\n\n" +
+    "Yakin lanjut?"
+  );
+  if(!ok) return;
+}
 
   const { error }=await supabase.from("barang_masuk").update({tanggal,brand,jenis,paper,size,qty:+qty}).eq('id',id);
   if(error){ alert(error.message); return; }
