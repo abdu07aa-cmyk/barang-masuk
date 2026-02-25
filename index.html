@@ -2,77 +2,299 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Report Barang Masuk - Filter & Export</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<title>Report Barang Masuk - Mobile</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  body{
-  font-family:Arial;
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  margin:0;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.container-app{
-  max-width:420px;   /* 🔥 ini bikin tidak terlalu lebar */
-  margin:20px auto;  /* center */
-  padding:10px;
+body {
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  background: #f8fafc;
+  padding: 12px;
+  min-height: 100vh;
 }
 
-.card{
-  background:#fff;
-  border-radius:18px;
-  padding:18px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.15);
-  margin-bottom:20px;
+.container {
+  max-width: 480px;
+  margin: 0 auto;
 }
 
-h3{
-  margin-top:0;
+h3 {
+  font-size: 1.3rem;
+  margin: 16px 0 12px 0;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-left: 5px solid #3b82f6;
+  padding-left: 12px;
 }
-body{font-family:Arial;padding:10px;background:#f4f6f8}
-input,select,button{padding:8px;margin:5px;width:100%}
-table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff}
-th,td{border:1px solid #ccc;padding:6px;font-size:12px;text-align:center}
-th{background:#eee}
-.btn{background:#007bff;color:#fff;border:none;border-radius:5px;cursor:pointer;margin-top:5px}
-.btn-green{background:#28a745;color:#fff;border:none;border-radius:5px;cursor:pointer;margin-top:5px}
-.btn-red{background:#dc3545;color:#fff;border:none;border-radius:5px;cursor:pointer;margin-top:5px}
-.btn-yellow{background:#ffc107;color:#000;border:none;border-radius:5px;cursor:pointer;margin-top:5px}
+
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.input-row input,
+.input-row select {
+  flex: 1 1 45%;
+}
+
+label {
+  font-size: 0.85rem;
+  color: #334155;
+  font-weight: 500;
+  margin-bottom: -4px;
+}
+
+input, select, button {
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid #cbd5e1;
+  font-size: 15px;
+  background: white;
+  width: 100%;
+  outline: none;
+  transition: all 0.2s;
+}
+
+input:focus, select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+}
+
+button {
+  font-weight: 600;
+  border: none;
+  background: #f1f5f9;
+  color: #1e293b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+  box-shadow: 0 8px 14px -8px #3b82f6;
+}
+
+.btn-success {
+  background: #22c55e;
+  color: white;
+  box-shadow: 0 8px 14px -8px #22c55e;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 8px 14px -8px #ef4444;
+}
+
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+  box-shadow: 0 8px 14px -8px #f59e0b;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid #3b82f6;
+  color: #3b82f6;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  margin: 10px 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+  font-size: 13px;
+}
+
+th {
+  background: #f1f5f9;
+  color: #0f172a;
+  font-weight: 600;
+  padding: 12px 6px;
+  white-space: nowrap;
+}
+
+td {
+  padding: 10px 6px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #1e293b;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.btn-kecil {
+  padding: 8px 12px;
+  font-size: 12px;
+  border-radius: 40px;
+  margin: 2px;
+  width: auto;
+  display: inline-block;
+}
+
+.filter-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-row > * {
+  flex: 1 1 calc(50% - 4px);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.action-buttons button {
+  flex: 1 1 calc(50% - 5px);
+}
+
+.mt-2 {
+  margin-top: 12px;
+}
+
+.mb-1 {
+  margin-bottom: 6px;
+}
+
+.text-small {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* input table khusus mobile */
+#inputTable {
+  min-width: 100%;
+}
+
+#inputTable th {
+  font-size: 12px;
+}
+
+#inputTable td select,
+#inputTable td input {
+  width: 100%;
+  padding: 8px;
+  font-size: 12px;
+}
+
+/* tombol hapus di input table */
+#inputTable .btn-red {
+  padding: 8px 10px;
+  font-size: 12px;
+  width: auto;
+}
 </style>
 </head>
-<div class="container-app">
 <body>
-</div>
+
+<div class="container">
+
+<h3>📦 Barang Masuk</h3>
+
 <div class="card">
-  <h3>📦 Report Barang Masuk (Final Advanced)</h3>
+  <div class="input-group">
+    <input type="date" id="tanggal" class="mb-1">
+    <input type="text" id="brand" placeholder="Nama Brand">
+  </div>
+
+  <div class="table-responsive">
+    <table id="inputTable">
+      <tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
+    </table>
+  </div>
+
+  <div class="action-buttons">
+    <button id="btnTambah" class="btn-primary">+ Tambah</button>
+    <button id="btnSimpan" class="btn-success">💾 Simpan</button>
+  </div>
 </div>
-<input type="date" id="tanggal">
-<input type="text" id="brand" placeholder="Nama Brand">
 
-<table id="inputTable">
-<tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
-</table>
+<h3>🔍 Data Tersimpan</h3>
 
-<button id="btnTambah" class="btn">+ Tambah Barang</button>
-<button id="btnSimpan" class="btn">💾 Simpan</button>
+<div class="card">
+  <div class="filter-grid">
+    <div class="filter-row">
+      <input type="date" id="filterTanggal" placeholder="Filter Tanggal">
+      <input type="text" id="filterBrand" placeholder="Cari Brand">
+    </div>
+    <div class="filter-row">
+      <select id="filterJenis"><option value="">Semua Jenis</option></select>
+      <select id="filterPaper"><option value="">Semua Paper</option></select>
+    </div>
+    <div class="filter-row">
+      <select id="filterSize"><option value="">Semua Size</option></select>
+      <button class="btn-outline" id="btnResetFilter">Reset</button>
+    </div>
+  </div>
 
-<h3>Data Tersimpan</h3>
-<input type="date" id="filterTanggal" placeholder="Filter Tanggal">
-<input type="text" id="filterBrand" placeholder="Cari Brand">
-<select id="filterJenis"><option value="">Semua Jenis</option></select>
-<select id="filterPaper"><option value="">Semua Paper</option></select>
-<select id="filterSize"><option value="">Semua Size</option></select>
-<button class="btn-red" id="btnResetFilter">Reset Filter</button>
+  <div class="table-responsive">
+    <table id="dataTable">
+      <tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
+    </table>
+  </div>
 
-<table id="dataTable">
-<tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
-</table>
+  <div class="action-buttons">
+    <button id="btnExcelTable" class="btn-success">📄 Excel</button>
+    <button id="btnWATable" class="btn-success">📲 WA</button>
+  </div>
+  <div class="text-small" style="text-align:center; margin-top:8px;">Data terfilter akan diekspor</div>
+</div>
 
-<button id="btnExcelTable" class="btn-green">📄 Export Excel (Filtered)</button>
-<button id="btnWATable" class="btn-green">📲 Kirim WA (Filtered)</button>
+</div>
 
 <script>
+// ============== FUNGSI ASLI TIDAK BERUBAH ==============
 function formatTanggal(tgl){
   if(!tgl) return "";
   const [y,m,d] = tgl.split("-");
@@ -134,7 +356,7 @@ function tambahBaris(){
   <td><select>${opt(paper)}</select></td>
   <td><select>${opt(size)}</select></td>
   <td><input type="number" min="1"></td>
-  <td><button class="btn-red" onclick="this.closest('tr').remove()">X</button></td>`;
+  <td><button class="btn-danger btn-kecil" onclick="this.closest('tr').remove()">X</button></td>`;
 }
 
 // ================= Data Table ===================
@@ -144,8 +366,8 @@ function addRowToTable(d){
   tr.innerHTML=`<td>${formatTanggal(d.tanggal)}</td>
 <td>${d.brand}</td><td>${d.jenis}</td><td>${d.paper}</td>
 <td>${d.size}</td><td>${d.qty}</td>
-<td><button class="btn-yellow" onclick="editRow(this)">Edit</button>
-<button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
+<td><button class="btn-warning btn-kecil" onclick="editRow(this)">Edit</button>
+<button class="btn-danger btn-kecil" onclick="deleteRow(this)">Hapus</button></td>`;
   dataTable.appendChild(tr);
 }
 
@@ -201,20 +423,19 @@ window.editRow = function(btn){
   const sizeText    = tr.cells[4].textContent;
   const qtyText     = tr.cells[5].textContent;
 
-  // simpan data awal untuk warning
   tr.dataset.oldTanggal = tanggalText;
   tr.dataset.oldBrand   = brandText;
 
   tr.innerHTML = `
-    <td><input type="date" value="${tanggalText}"></td>
-    <td><input type="text" value="${brandText}"></td>
-    <td><select>${opt(jenis)}</select></td>
-    <td><select>${opt(paper)}</select></td>
-    <td><select>${opt(size)}</select></td>
-    <td><input type="number" min="1" value="${qtyText}"></td>
+    <td><input type="date" value="${tanggalText}" style="padding:6px"></td>
+    <td><input type="text" value="${brandText}" style="padding:6px"></td>
+    <td><select style="padding:6px">${opt(jenis)}</select></td>
+    <td><select style="padding:6px">${opt(paper)}</select></td>
+    <td><select style="padding:6px">${opt(size)}</select></td>
+    <td><input type="number" min="1" value="${qtyText}" style="padding:6px; width:70px"></td>
     <td>
-      <button class="btn-green" onclick="saveEdit(this)">Simpan</button>
-      <button class="btn-red" onclick="cancelEdit(this,'${tanggalText}','${brandText}','${jenisText}','${paperText}','${sizeText}','${qtyText}')">Batal</button>
+      <button class="btn-success btn-kecil" onclick="saveEdit(this)">Simpan</button>
+      <button class="btn-danger btn-kecil" onclick="cancelEdit(this,'${tanggalText}','${brandText}','${jenisText}','${paperText}','${sizeText}','${qtyText}')">Batal</button>
     </td>
   `;
 
@@ -223,13 +444,12 @@ window.editRow = function(btn){
   tr.cells[4].querySelector('select').value = sizeText;
 };
 
-
 window.cancelEdit = function(btn,tanggal,brand,jenis,paper,size,qty){
   const tr=btn.closest('tr');
   tr.innerHTML=`<td>${formatTanggal(tanggal)}</td>
 <td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
-<td><button class="btn-yellow" onclick="editRow(this)">Edit</button>
-<button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
+<td><button class="btn-warning btn-kecil" onclick="editRow(this)">Edit</button>
+<button class="btn-danger btn-kecil" onclick="deleteRow(this)">Hapus</button></td>`;
 }
 
 window.saveEdit = async function(btn){
@@ -259,8 +479,8 @@ if(tanggal !== oldTanggal || brand !== oldBrand){
 
   tr.innerHTML=`<td>${formatTanggal(tanggal)}</td>
 <td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
-<td><button class="btn-yellow" onclick="editRow(this)">Edit</button>
-<button class="btn-red" onclick="deleteRow(this)">Hapus</button></td>`;
+<td><button class="btn-warning btn-kecil" onclick="editRow(this)">Edit</button>
+<button class="btn-danger btn-kecil" onclick="deleteRow(this)">Hapus</button></td>`;
   filterTable();
 }
 
@@ -284,7 +504,6 @@ function exportExcelTable(){
     return;
   }
 
-  // 🔥 URUTKAN TANGGAL UNTUK EXCEL (LAMA → BARU)
   rows.sort((a,b)=>{
     const [da,ma,ya] = a.cells[0].textContent.split('/');
     const [db,mb,yb] = b.cells[0].textContent.split('/');
@@ -306,7 +525,7 @@ function exportExcelTable(){
   XLSX.writeFile(wb,"barang_masuk_filtered.xlsx");
 }
 
-// ================= WA Filtered (perbaikan) ===================
+// ================= WA Filtered ===================
 function sendWATable(){
   const rows = [...dataTable.rows].slice(1).filter(r=>r.style.display!=="none");
   if(rows.length===0){ 
@@ -316,7 +535,6 @@ function sendWATable(){
 
   let txt = "📦 *REPORT BARANG MASUK*\n━━━━━━━━━━━━━━━━━━━━\n";
   rows.forEach(r=>{
-    // PASTIKAN BRAND SELALU DIAMBIL
     const brand = r.cells[1].textContent || "-";
     const jenis = r.cells[2].textContent || "-";
     const paper = r.cells[3].textContent || "-";
