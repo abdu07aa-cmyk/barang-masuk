@@ -187,6 +187,7 @@ td select, td input {
   font-size: 12px;
   border-radius: 30px;
   width: auto;
+  cursor: pointer;
 }
 
 .action-grid {
@@ -224,7 +225,13 @@ td select, td input {
     <div class="table-wrapper">
       <div class="table-responsive">
         <table id="inputTable">
-          <tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
+          <tr>
+            <th>Jenis</th>
+            <th>Paper</th>
+            <th>Size</th>
+            <th>Qty</th>
+            <th>Aksi</th>
+          </tr>
         </table>
       </div>
     </div>
@@ -240,7 +247,7 @@ td select, td input {
       <span style="font-size: 2rem;">💡</span>
       <div>
         <div style="font-weight: 600; color: #1e40af;">Tips:</div>
-        <div style="font-size: 0.9rem; color: #2563eb;">Klik "Lihat Data" untuk melihat data yang sudah tersimpan.</div>
+        <div style="font-size: 0.9rem; color: #2563eb;">Klik "Tambah Baris" untuk menambah item, lalu "Simpan"</div>
       </div>
     </div>
   </div>
@@ -262,7 +269,14 @@ const paper = ["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","42 LEAVES","50 L
 const size = ["1 1/4","18X6,5","18X8","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PACK","8 CONES/PACK","700 CONES/BOX",
   "729 CONES/BOX","900 CONES/BOX","50 CONES/JARS","800 CONES/BOX","1000 CONES/BOX"];
 
-const opt = l => '<option></option>' + l.map(v => `<option>${v}</option>`).join('');
+// Fungsi buat option dropdown
+function buatOption(list) {
+  let html = '<option value=""></option>';
+  for (let i = 0; i < list.length; i++) {
+    html += `<option value="${list[i]}">${list[i]}</option>`;
+  }
+  return html;
+}
 
 // ============== ELEMEN ==============
 const tanggal = document.getElementById('tanggal');
@@ -273,59 +287,123 @@ const btnSimpan = document.getElementById('btnSimpan');
 
 // ============== FUNGSI TAMBAH BARIS ==============
 function tambahBaris() {
-  const r = inputTable.insertRow(-1);
-  r.innerHTML = `
-    <td><select>${opt(jenis)}</select></td>
-    <td><select>${opt(paper)}</select></td>
-    <td><select>${opt(size)}</select></td>
-    <td><input type="number" min="1" value="1"></td>
-    <td><button class="btn-small" style="background:#ef4444; color:white; border:none;" onclick="this.closest('tr').remove()">✕</button></td>
-  `;
+  const barisBaru = inputTable.insertRow(-1);
+  
+  // Kolom Jenis
+  const cellJenis = barisBaru.insertCell(0);
+  const selectJenis = document.createElement('select');
+  selectJenis.innerHTML = buatOption(jenis);
+  cellJenis.appendChild(selectJenis);
+  
+  // Kolom Paper
+  const cellPaper = barisBaru.insertCell(1);
+  const selectPaper = document.createElement('select');
+  selectPaper.innerHTML = buatOption(paper);
+  cellPaper.appendChild(selectPaper);
+  
+  // Kolom Size
+  const cellSize = barisBaru.insertCell(2);
+  const selectSize = document.createElement('select');
+  selectSize.innerHTML = buatOption(size);
+  cellSize.appendChild(selectSize);
+  
+  // Kolom Qty
+  const cellQty = barisBaru.insertCell(3);
+  const inputQty = document.createElement('input');
+  inputQty.type = 'number';
+  inputQty.min = '1';
+  inputQty.value = '1';
+  cellQty.appendChild(inputQty);
+  
+  // Kolom Aksi (tombol hapus)
+  const cellAksi = barisBaru.insertCell(4);
+  const btnHapus = document.createElement('button');
+  btnHapus.className = 'btn-small';
+  btnHapus.style.cssText = 'background:#ef4444; color:white; border:none;';
+  btnHapus.textContent = '✕';
+  btnHapus.onclick = function() {
+    barisBaru.remove();
+  };
+  cellAksi.appendChild(btnHapus);
 }
 
 // ============== FUNGSI SIMPAN ==============
 async function simpan() {
-  if(!tanggal.value || !brand.value) {
-    alert("❌ Tanggal & Brand wajib diisi");
+  // Validasi
+  if(!tanggal.value) {
+    alert("❌ Tanggal harus diisi");
     return;
   }
   
-  const rows = [...inputTable.rows].slice(1);
-  if(rows.length === 0) {
+  if(!brand.value) {
+    alert("❌ Brand harus diisi");
+    return;
+  }
+  
+  // Ambil semua baris (kecuali header)
+  const baris = [];
+  for (let i = 1; i < inputTable.rows.length; i++) {
+    const row = inputTable.rows[i];
+    const selects = row.querySelectorAll('select');
+    const input = row.querySelector('input[type="number"]');
+    
+    baris.push({
+      tanggal: tanggal.value,
+      brand: brand.value,
+      jenis: selects[0].value,
+      paper: selects[1].value,
+      size: selects[2].value,
+      qty: parseInt(input.value)
+    });
+  }
+  
+  if(baris.length === 0) {
     alert("❌ Tambahkan minimal 1 barang");
     return;
   }
-
-  const dataToInsert = rows.map(r => {
-    const e = r.querySelectorAll("select,input");
-    return {
-      tanggal: tanggal.value,
-      brand: brand.value,
-      jenis: e[0].value,
-      paper: e[1].value,
-      size: e[2].value,
-      qty: +e[3].value
-    };
-  });
-
+  
+  // Cek apakah ada yang belum dipilih
+  for(let i = 0; i < baris.length; i++) {
+    if(!baris[i].jenis || !baris[i].paper || !baris[i].size) {
+      alert("❌ Baris ke-" + (i+1) + " belum lengkap");
+      return;
+    }
+  }
+  
   try {
     let berhasil = 0;
     
-    for (let item of dataToInsert) {
+    // Simpan satu per satu
+    for (let item of baris) {
       const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?apikey=${SUPABASE_KEY}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(item)
       });
       
-      if (response.ok) berhasil++;
+      if (response.ok) {
+        berhasil++;
+      } else {
+        const error = await response.text();
+        console.log("Gagal:", error);
+      }
     }
     
     if (berhasil > 0) {
-      inputTable.innerHTML = '<tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
+      // Kosongkan tabel (hapus semua baris kecuali header)
+      while(inputTable.rows.length > 1) {
+        inputTable.deleteRow(1);
+      }
+      
+      // Reset input
       tanggal.value = '';
       brand.value = '';
+      
+      // Tambah baris baru
       tambahBaris();
+      
       alert(`✅ ${berhasil} data berhasil disimpan!`);
     }
     
@@ -334,9 +412,11 @@ async function simpan() {
   }
 }
 
-// ============== EVENT ==============
+// ============== EVENT LISTENER ==============
 btnTambah.onclick = tambahBaris;
 btnSimpan.onclick = simpan;
+
+// Tambah baris pertama otomatis
 tambahBaris();
 </script>
 </body>
