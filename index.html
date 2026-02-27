@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-<title>Report Barang Masuk - Mobile</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<title>Input Barang Masuk</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 * {
@@ -25,556 +24,320 @@ body {
   margin: 0 auto;
 }
 
-h3 {
-  font-size: 1.3rem;
-  margin: 16px 0 12px 0;
-  color: #0f172a;
+/* Header */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  background: white;
+  padding: 16px;
+  border-radius: 30px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.app-header h1 {
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-link {
+  background: #3b82f6;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 40px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 6px;
-  border-left: 5px solid #3b82f6;
-  padding-left: 12px;
 }
 
 .card {
   background: white;
-  border-radius: 20px;
-  padding: 16px;
+  border-radius: 28px;
+  padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 25px -8px rgba(0,0,0,0.1);
   border: 1px solid #e2e8f0;
 }
 
-.input-group {
+.card-header {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.input-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.input-row input,
-.input-row select {
-  flex: 1 1 45%;
-}
-
-label {
-  font-size: 0.85rem;
-  color: #334155;
-  font-weight: 500;
-  margin-bottom: -4px;
-}
-
-input, select, button {
-  padding: 12px 14px;
-  border-radius: 16px;
-  border: 1px solid #cbd5e1;
-  font-size: 15px;
-  background: white;
-  width: 100%;
-  outline: none;
-  transition: all 0.2s;
-}
-
-input:focus, select:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
-}
-
-button {
-  font-weight: 600;
-  border: none;
-  background: #f1f5f9;
-  color: #1e293b;
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.btn-primary {
-  background: #3b82f6;
-  color: white;
-  box-shadow: 0 8px 14px -8px #3b82f6;
+.card-header h3 {
+  font-size: 1.2rem;
+  color: #0f172a;
 }
 
-.btn-success {
-  background: #22c55e;
-  color: white;
-  box-shadow: 0 8px 14px -8px #22c55e;
+.input-field {
+  margin-bottom: 16px;
 }
 
-.btn-danger {
-  background: #ef4444;
-  color: white;
-  box-shadow: 0 8px 14px -8px #ef4444;
+.input-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 6px;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-.btn-warning {
-  background: #f59e0b;
-  color: white;
-  box-shadow: 0 8px 14px -8px #f59e0b;
+.input-field input,
+.input-field select {
+  width: 100%;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1.5px solid #e2e8f0;
+  font-size: 15px;
+  background: #f8fafc;
+  outline: none;
 }
 
-.btn-outline {
-  background: transparent;
-  border: 1.5px solid #3b82f6;
-  color: #3b82f6;
+.input-field input:focus,
+.input-field select:focus {
+  border-color: #2563eb;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+}
+
+/* Table Input */
+.table-wrapper {
+  background: #f8fafc;
+  border-radius: 20px;
+  border: 1.5px solid #e2e8f0;
+  overflow: hidden;
+  margin: 16px 0;
 }
 
 .table-responsive {
   overflow-x: auto;
-  border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  margin: 10px 0;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
+  min-width: 500px;
   font-size: 13px;
 }
 
 th {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: #f1f4f9;
+  color: #334155;
   font-weight: 600;
-  padding: 12px 6px;
+  padding: 14px 8px;
   white-space: nowrap;
 }
 
 td {
-  padding: 10px 6px;
+  padding: 12px 8px;
   border-bottom: 1px solid #e2e8f0;
-  color: #1e293b;
 }
 
-tr:last-child td {
-  border-bottom: none;
-}
-
-.btn-kecil {
-  padding: 8px 12px;
-  font-size: 12px;
-  border-radius: 40px;
-  margin: 2px;
-  width: auto;
-  display: inline-block;
-}
-
-.filter-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.filter-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.filter-row > * {
-  flex: 1 1 calc(50% - 4px);
-}
-
-.action-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-
-.action-buttons button {
-  flex: 1 1 calc(50% - 5px);
-}
-
-.mt-2 {
-  margin-top: 12px;
-}
-
-.mb-1 {
-  margin-bottom: 6px;
-}
-
-.text-small {
-  font-size: 12px;
-  color: #64748b;
-}
-
-/* input table khusus mobile */
-#inputTable {
-  min-width: 100%;
-}
-
-#inputTable th {
-  font-size: 12px;
-}
-
-#inputTable td select,
-#inputTable td input {
+td select, td input {
   width: 100%;
-  padding: 8px;
-  font-size: 12px;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1.5px solid #e2e8f0;
+  background: white;
 }
 
-/* tombol hapus di input table */
-#inputTable .btn-red {
-  padding: 8px 10px;
+/* Buttons */
+.btn {
+  padding: 16px;
+  border-radius: 40px;
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  transition: all 0.2s;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-success {
+  background: #16a34a;
+  color: white;
+}
+
+.btn-outline {
+  background: white;
+  border: 1.5px solid #2563eb;
+  color: #2563eb;
+}
+
+.btn-small {
+  padding: 8px 16px;
   font-size: 12px;
+  border-radius: 30px;
   width: auto;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
 }
 </style>
 </head>
 <body>
 
 <div class="container">
-
-<h3>📦 Barang Masuk</h3>
-
-<div class="card">
-  <div class="input-group">
-    <input type="date" id="tanggal" class="mb-1">
-    <input type="text" id="brand" placeholder="Nama Brand">
+  
+  <!-- Header dengan navigasi -->
+  <div class="app-header">
+    <h1>📦 StockMaster</h1>
+    <a href="data.html" class="nav-link">📋 Lihat Data</a>
   </div>
 
-  <div class="table-responsive">
-    <table id="inputTable">
-      <tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
-    </table>
-  </div>
-
-  <div class="action-buttons">
-    <button id="btnTambah" class="btn-primary">+ Tambah</button>
-    <button id="btnSimpan" class="btn-success">💾 Simpan</button>
-  </div>
-</div>
-
-<h3>🔍 Data Tersimpan</h3>
-
-<div class="card">
-  <div class="filter-grid">
-    <div class="filter-row">
-      <input type="date" id="filterTanggal" placeholder="Filter Tanggal">
-      <input type="text" id="filterBrand" placeholder="Cari Brand">
+  <!-- Card Input -->
+  <div class="card">
+    <div class="card-header">
+      <span style="font-size: 1.8rem;">📥</span>
+      <h3>Input Barang Masuk</h3>
     </div>
-    <div class="filter-row">
-      <select id="filterJenis"><option value="">Semua Jenis</option></select>
-      <select id="filterPaper"><option value="">Semua Paper</option></select>
+    
+    <div class="input-field">
+      <label>Tanggal</label>
+      <input type="date" id="tanggal">
     </div>
-    <div class="filter-row">
-      <select id="filterSize"><option value="">Semua Size</option></select>
-      <button class="btn-outline" id="btnResetFilter">Reset</button>
+    
+    <div class="input-field">
+      <label>Nama Brand</label>
+      <input type="text" id="brand" placeholder="Contoh: BRAND ABC">
+    </div>
+
+    <div class="table-wrapper">
+      <div class="table-responsive">
+        <table id="inputTable">
+          <tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="action-grid">
+      <button id="btnTambah" class="btn btn-outline">+ Tambah Baris</button>
+      <button id="btnSimpan" class="btn btn-success">💾 Simpan</button>
     </div>
   </div>
 
-  <div class="table-responsive">
-    <table id="dataTable">
-      <tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
-    </table>
+  <!-- Info Card -->
+  <div class="card" style="background: #eef2ff; border-color: #2563eb;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span style="font-size: 2rem;">💡</span>
+      <div>
+        <div style="font-weight: 600; color: #1e40af;">Tips:</div>
+        <div style="font-size: 0.9rem; color: #2563eb;">Klik "Lihat Data" untuk melihat, filter, dan export data yang sudah tersimpan.</div>
+      </div>
+    </div>
   </div>
-
-  <div class="action-buttons">
-    <button id="btnExcelTable" class="btn-success">📄 Excel</button>
-    <button id="btnWATable" class="btn-success">📲 WA</button>
-  </div>
-  <div class="text-small" style="text-align:center; margin-top:8px;">Data terfilter akan diekspor</div>
-</div>
-
 </div>
 
 <script>
-// ============== FUNGSI ASLI TIDAK BERUBAH ==============
-function formatTanggal(tgl){
-  if(!tgl) return "";
-  const [y,m,d] = tgl.split("-");
-  return `${d}/${m}/${y}`;
-}
-
-function formatTanggalDB(tgl){
-  const [d,m,y] = tgl.split("/");
-  return `${y}-${m}-${d}`;
-}
-
-document.addEventListener("DOMContentLoaded", ()=>{
-
+// ============== KONFIGURASI SUPABASE ==============
 const supabase = window.supabase.createClient(
   "https://dggspzjibisapdaowkkj.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY"
 );
 
+// ============== DATA DROPDOWN ==============
 const jenis=["BOOKLET","FILTER WHITE","FILTER BROWN","FILTER PRINTED","DISPLAY","LAYER BOX","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER",
 "MIKA","JAR","STICKER JAR","STICKER MIKA","STICKER FILTER","STICKER BULAT BESAR","STICKER BULAT KECIL","TUBE","FILTER GREEN","FILTER WHITE","FILTER BLUE","FILTER 21","FILTER 26",
 "FILTER 30","FILTER 40","TRAPEZOID","HOLDER S","HOLDER M","HOLDER L","HOLDER 9X9","HOLDER 10X10"];
+
 const paper=["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","42 LEAVES","50 LEAVES","51 LEAVES","52 LEAVES",
 "60 LEAVES","70 MM","83 MM","84 MM","98 MM","109 MM","110 MM"];
+
 const size=["1 1/4","18X6,5","18X8","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PACK","8 CONES/PACK","700 CONES/BOX",
 "729 CONES/BOX","900 CONES/BOX","50 CONES/JARS","800 CONES/BOX","1000 CONES/BOX"];
-const opt=l=>'<option></option>'+l.map(v=>`<option>${v}</option>`).join('');
 
-// ================= Filter Select ===================
-function isiFilter(){
-  filterJenis.innerHTML = '<option value="">Semua Jenis</option>'+jenis.map(v=>`<option>${v}</option>`).join('');
-  filterPaper.innerHTML = '<option value="">Semua Paper</option>'+paper.map(v=>`<option>${v}</option>`).join('');
-  filterSize.innerHTML = '<option value="">Semua Size</option>'+size.map(v=>`<option>${v}</option>`).join('');
-}
+const opt = l => '<option></option>' + l.map(v => `<option>${v}</option>`).join('');
 
-// ================= Filter Table ===================
-function filterTable(){
-  const tgl = filterTanggal.value ? formatTanggal(filterTanggal.value) : "";
-  const brand = filterBrand.value.toLowerCase();
-  const jenisVal = filterJenis.value;
-  const paperVal = filterPaper.value;
-  const sizeVal  = filterSize.value;
+// ============== ELEMEN ==============
+const tanggal = document.getElementById('tanggal');
+const brand = document.getElementById('brand');
+const inputTable = document.getElementById('inputTable');
+const btnTambah = document.getElementById('btnTambah');
+const btnSimpan = document.getElementById('btnSimpan');
 
-  [...dataTable.rows].slice(1).forEach(r=>{
-    const cocok =
-      (!tgl || r.cells[0].textContent === tgl) &&
-      (!brand || r.cells[1].textContent.toLowerCase().includes(brand)) &&
-      (!jenisVal || r.cells[2].textContent === jenisVal) &&
-      (!paperVal || r.cells[3].textContent === paperVal) &&
-      (!sizeVal || r.cells[4].textContent === sizeVal);
-
-    r.style.display = cocok ? "" : "none";
-  });
-}
-
-// ================= Input Table ===================
-function tambahBaris(){
-  const r=inputTable.insertRow(-1);
-  r.innerHTML=`<td><select>${opt(jenis)}</select></td>
-  <td><select>${opt(paper)}</select></td>
-  <td><select>${opt(size)}</select></td>
-  <td><input type="number" min="1"></td>
-  <td><button class="btn-danger btn-kecil" onclick="this.closest('tr').remove()">X</button></td>`;
-}
-
-// ================= Data Table ===================
-function addRowToTable(d){
-  const tr=document.createElement('tr');
-  tr.dataset.id=d.id;
-  tr.innerHTML=`<td>${formatTanggal(d.tanggal)}</td>
-<td>${d.brand}</td><td>${d.jenis}</td><td>${d.paper}</td>
-<td>${d.size}</td><td>${d.qty}</td>
-<td><button class="btn-warning btn-kecil" onclick="editRow(this)">Edit</button>
-<button class="btn-danger btn-kecil" onclick="deleteRow(this)">Hapus</button></td>`;
-  dataTable.appendChild(tr);
-}
-
-// ================= Load Data ===================
-async function loadData(){
- const { data } = await supabase
-  .from("barang_masuk")
-  .select("*")
-  .order("tanggal", { ascending: false })
-  .order("id", { ascending: false });
-  dataTable.innerHTML='<tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
-  data.forEach(d=>addRowToTable(d));
-  isiFilter(); 
-
-  filterTanggal.value = "";
-  filterBrand.value = "";
-  filterJenis.value = "";
-  filterPaper.value = "";
-  filterSize.value = "";
-  filterTable(); 
-}
-
-// ================= Simpan Data ===================
-async function simpan(){
-  if(!tanggal.value||!brand.value){ alert("Tanggal & Brand wajib diisi"); return; }
-  const rows=[...inputTable.rows].slice(1);
-  if(rows.length===0){ alert("Tidak ada data"); return; }
-
-  const dataToInsert = rows.map(r=>{
-    const e=r.querySelectorAll("select,input");
-    return {tanggal:tanggal.value,brand:brand.value,jenis:e[0].value,paper:e[1].value,size:e[2].value,qty:+e[3].value};
-  });
-
-  const { error, data } = await supabase.from("barang_masuk").insert(dataToInsert).select();
-  if(error){ alert(error.message); return; }
-
-  inputTable.innerHTML='<tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
-  data.forEach(d=>addRowToTable(d));
-  filterTable();
-  alert("✅ Data tersimpan");
-}
-
-// ================= Edit & Delete ===================
-
-window.editRow = function(btn){
-  const tr = btn.closest('tr');
-  const id = tr.dataset.id;
-
-  const tanggalText = formatTanggalDB(tr.cells[0].textContent);
-  const brandText   = tr.cells[1].textContent;
-  const jenisText   = tr.cells[2].textContent;
-  const paperText   = tr.cells[3].textContent;
-  const sizeText    = tr.cells[4].textContent;
-  const qtyText     = tr.cells[5].textContent;
-
-  tr.dataset.oldTanggal = tanggalText;
-  tr.dataset.oldBrand   = brandText;
-
-  tr.innerHTML = `
-    <td><input type="date" value="${tanggalText}" style="padding:6px"></td>
-    <td><input type="text" value="${brandText}" style="padding:6px"></td>
-    <td><select style="padding:6px">${opt(jenis)}</select></td>
-    <td><select style="padding:6px">${opt(paper)}</select></td>
-    <td><select style="padding:6px">${opt(size)}</select></td>
-    <td><input type="number" min="1" value="${qtyText}" style="padding:6px; width:70px"></td>
-    <td>
-      <button class="btn-success btn-kecil" onclick="saveEdit(this)">Simpan</button>
-      <button class="btn-danger btn-kecil" onclick="cancelEdit(this,'${tanggalText}','${brandText}','${jenisText}','${paperText}','${sizeText}','${qtyText}')">Batal</button>
-    </td>
+// ============== FUNGSI ==============
+function tambahBaris() {
+  const r = inputTable.insertRow(-1);
+  r.innerHTML = `
+    <td><select>${opt(jenis)}</select></td>
+    <td><select>${opt(paper)}</select></td>
+    <td><select>${opt(size)}</select></td>
+    <td><input type="number" min="1"></td>
+    <td><button class="btn-small" style="background:#ef4444; color:white; border:none;" onclick="this.closest('tr').remove()">✕</button></td>
   `;
-
-  tr.cells[2].querySelector('select').value = jenisText;
-  tr.cells[3].querySelector('select').value = paperText;
-  tr.cells[4].querySelector('select').value = sizeText;
-};
-
-window.cancelEdit = function(btn,tanggal,brand,jenis,paper,size,qty){
-  const tr=btn.closest('tr');
-  tr.innerHTML=`<td>${formatTanggal(tanggal)}</td>
-<td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
-<td><button class="btn-warning btn-kecil" onclick="editRow(this)">Edit</button>
-<button class="btn-danger btn-kecil" onclick="deleteRow(this)">Hapus</button></td>`;
 }
 
-window.saveEdit = async function(btn){
-  const tr=btn.closest('tr');
-  const id=tr.dataset.id;
-  const tanggal=tr.cells[0].querySelector('input').value;
-  const brand=tr.cells[1].querySelector('input').value;
-  const jenis=tr.cells[2].querySelector('select').value;
-  const paper=tr.cells[3].querySelector('select').value;
-  const size=tr.cells[4].querySelector('select').value;
-  const qty=tr.cells[5].querySelector('input').value;
-  const oldTanggal = tr.dataset.oldTanggal;
-const oldBrand   = tr.dataset.oldBrand;
-
-if(tanggal !== oldTanggal || brand !== oldBrand){
-  const ok = confirm(
-    "⚠️ PERHATIAN\n\n" +
-    "Tanggal / Brand berubah.\n" +
-    "Perubahan ini HANYA berlaku untuk baris ini.\n\n" +
-    "Yakin lanjut?"
-  );
-  if(!ok) return;
-}
-
-  const { error }=await supabase.from("barang_masuk").update({tanggal,brand,jenis,paper,size,qty:+qty}).eq('id',id);
-  if(error){ alert(error.message); return; }
-
-  tr.innerHTML=`<td>${formatTanggal(tanggal)}</td>
-<td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
-<td><button class="btn-warning btn-kecil" onclick="editRow(this)">Edit</button>
-<button class="btn-danger btn-kecil" onclick="deleteRow(this)">Hapus</button></td>`;
-  filterTable();
-}
-
-window.deleteRow = async function(btn){
-  if(!confirm("Yakin hapus data ini?")) return;
-  const tr=btn.closest('tr');
-  const id=tr.dataset.id;
-  const { error }=await supabase.from("barang_masuk").delete().eq('id',id);
-  if(error){ alert(error.message); return; }
-  tr.remove();
-}
-
-// ================= Export Excel Filtered ===================
-function exportExcelTable(){
-  let rows = [...dataTable.rows]
-    .slice(1)
-    .filter(r => r.style.display !== "none");
-
-  if(rows.length === 0){
-    alert("Tidak ada data terfilter");
+async function simpan() {
+  if(!tanggal.value || !brand.value) {
+    alert("❌ Tanggal & Brand wajib diisi");
+    return;
+  }
+  
+  const rows = [...inputTable.rows].slice(1);
+  if(rows.length === 0) {
+    alert("❌ Tambahkan minimal 1 barang");
     return;
   }
 
-  rows.sort((a,b)=>{
-    const [da,ma,ya] = a.cells[0].textContent.split('/');
-    const [db,mb,yb] = b.cells[0].textContent.split('/');
-    return new Date(ya,ma-1,da) - new Date(yb,mb-1,db);
+  const dataToInsert = rows.map(r => {
+    const e = r.querySelectorAll("select,input");
+    return {
+      tanggal: tanggal.value,
+      brand: brand.value,
+      jenis: e[0].value,
+      paper: e[1].value,
+      size: e[2].value,
+      qty: +e[3].value
+    };
   });
 
-  const data = rows.map(r=>({
-    Tanggal: r.cells[0].textContent,
-    Brand: r.cells[1].textContent,
-    Jenis: r.cells[2].textContent,
-    Paper: r.cells[3].textContent,
-    Size: r.cells[4].textContent,
-    Qty: Number(r.cells[5].textContent)
-  }));
-
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Barang Masuk");
-  XLSX.writeFile(wb,"barang_masuk_filtered.xlsx");
-}
-
-// ================= WA Filtered ===================
-function sendWATable(){
-  const rows = [...dataTable.rows].slice(1).filter(r=>r.style.display!=="none");
-  if(rows.length===0){ 
-    alert("Tidak ada data terfilter"); 
-    return; 
+  const { error } = await supabase.from("barang_masuk").insert(dataToInsert);
+  
+  if(error) {
+    alert("❌ Error: " + error.message);
+    return;
   }
 
-  let txt = "📦 *REPORT BARANG MASUK*\n━━━━━━━━━━━━━━━━━━━━\n";
-  rows.forEach(r=>{
-    const brand = r.cells[1].textContent || "-";
-    const jenis = r.cells[2].textContent || "-";
-    const paper = r.cells[3].textContent || "-";
-    const size = r.cells[4].textContent || "-";
-    const qty = r.cells[5].textContent || "0";
-
-    txt += `• ${brand} | ${jenis} | ${paper} | ${size} | Qty: *${qty}*\n`;
-  });
-
-  txt += "\n━━━━━━━━━━━━━━━━━━━━\n";
-  const now = new Date();
-  txt += `🕐 Generated: ${now.toLocaleDateString()} , ${now.toLocaleTimeString()}`;
-
-  window.open("https://wa.me/?text="+encodeURIComponent(txt));
+  // Reset form
+  inputTable.innerHTML = '<tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
+  tanggal.value = '';
+  brand.value = '';
+  
+  alert("✅ " + dataToInsert.length + " data berhasil disimpan!");
 }
 
-// ================= Tombol ===================
-btnTambah.onclick=tambahBaris;
-btnSimpan.onclick=simpan;
-btnExcelTable.onclick=exportExcelTable;
-btnWATable.onclick=sendWATable;
+// ============== EVENT LISTENER ==============
+btnTambah.onclick = tambahBaris;
+btnSimpan.onclick = simpan;
 
-filterTanggal.onchange = filterTable;
-filterBrand.onkeyup    = filterTable;
-filterJenis.onchange   = filterTable;
-filterPaper.onchange   = filterTable;
-filterSize.onchange    = filterTable;
-
-btnResetFilter.onclick = ()=>{
-  filterTanggal.value="";
-  filterBrand.value="";
-  filterJenis.value="";
-  filterPaper.value="";
-  filterSize.value="";
-  filterTable();
-};
-
-loadData();
-
-});
+// Tambah baris pertama otomatis
+tambahBaris();
 </script>
 </body>
 </html>
