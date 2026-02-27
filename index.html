@@ -212,12 +212,12 @@ td select, td input {
     
     <div class="input-field">
       <label>Tanggal</label>
-      <input type="date" id="tanggal" value="2024-01-01">
+      <input type="date" id="tanggal" value="2024-03-01">
     </div>
     
     <div class="input-field">
       <label>Nama Brand</label>
-      <input type="text" id="brand" placeholder="Contoh: BRAND ABC" value="TEST">
+      <input type="text" id="brand" placeholder="Contoh: BRAND ABC" value="TEST BRAND">
     </div>
 
     <div class="table-wrapper">
@@ -230,6 +230,7 @@ td select, td input {
             <th>Qty</th>
             <th>Aksi</th>
           </tr>
+          <!-- Baris akan ditambah lewat javascript -->
         </table>
       </div>
     </div>
@@ -243,6 +244,8 @@ td select, td input {
 
 <script>
 // ============== KONFIGURASI ==============
+console.log("🚀 Memulai aplikasi input...");
+
 const SUPABASE_URL = "https://dggspzjibisapdaowkkj.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY";
 
@@ -266,24 +269,44 @@ const btnSimpan = document.getElementById('btnSimpan');
 
 // ============== FUNGSI TAMBAH BARIS ==============
 function tambahBaris() {
+  console.log("➕ Menambah baris baru");
+  
   const barisBaru = inputTable.insertRow(-1);
   
   // Kolom Jenis
   const cellJenis = barisBaru.insertCell(0);
   const selectJenis = document.createElement('select');
-  selectJenis.innerHTML = '<option value="">Pilih Jenis</option>' + jenis.map(v => `<option value="${v}">${v}</option>`).join('');
+  selectJenis.innerHTML = '<option value="">Pilih Jenis</option>';
+  jenis.forEach(j => {
+    const option = document.createElement('option');
+    option.value = j;
+    option.textContent = j;
+    selectJenis.appendChild(option);
+  });
   cellJenis.appendChild(selectJenis);
   
   // Kolom Paper
   const cellPaper = barisBaru.insertCell(1);
   const selectPaper = document.createElement('select');
-  selectPaper.innerHTML = '<option value="">Pilih Paper</option>' + paper.map(v => `<option value="${v}">${v}</option>`).join('');
+  selectPaper.innerHTML = '<option value="">Pilih Paper</option>';
+  paper.forEach(p => {
+    const option = document.createElement('option');
+    option.value = p;
+    option.textContent = p;
+    selectPaper.appendChild(option);
+  });
   cellPaper.appendChild(selectPaper);
   
   // Kolom Size
   const cellSize = barisBaru.insertCell(2);
   const selectSize = document.createElement('select');
-  selectSize.innerHTML = '<option value="">Pilih Size</option>' + size.map(v => `<option value="${v}">${v}</option>`).join('');
+  selectSize.innerHTML = '<option value="">Pilih Size</option>';
+  size.forEach(s => {
+    const option = document.createElement('option');
+    option.value = s;
+    option.textContent = s;
+    selectSize.appendChild(option);
+  });
   cellSize.appendChild(selectSize);
   
   // Kolom Qty
@@ -292,6 +315,7 @@ function tambahBaris() {
   inputQty.type = 'number';
   inputQty.min = '1';
   inputQty.value = '1';
+  inputQty.style.width = '80px';
   cellQty.appendChild(inputQty);
   
   // Kolom Aksi
@@ -303,6 +327,7 @@ function tambahBaris() {
   btnHapus.onclick = function() {
     if(confirm('Hapus baris ini?')) {
       barisBaru.remove();
+      console.log("🗑️ Baris dihapus");
     }
   };
   cellAksi.appendChild(btnHapus);
@@ -310,46 +335,44 @@ function tambahBaris() {
 
 // ============== FUNGSI SIMPAN ==============
 async function simpan() {
-  console.log("🔵 Tombol Simpan diklik");
+  console.log("🔵 TOMBOL SIMPAN DI KLIK!");
   
-  // Validasi tanggal
+  // ===== VALIDASI =====
   if(!tanggal.value) {
     alert("❌ Tanggal harus diisi");
     return;
   }
   
-  // Validasi brand
   if(!brand.value) {
     alert("❌ Brand harus diisi");
     return;
   }
   
-  // Ambil semua baris
+  // Ambil semua baris (kecuali header)
   const baris = [];
   for (let i = 1; i < inputTable.rows.length; i++) {
     const row = inputTable.rows[i];
     const selects = row.querySelectorAll('select');
     const input = row.querySelector('input[type="number"]');
     
-    const dataBaris = {
+    baris.push({
       tanggal: tanggal.value,
       brand: brand.value,
       jenis: selects[0].value,
       paper: selects[1].value,
       size: selects[2].value,
       qty: parseInt(input.value) || 1
-    };
-    
-    baris.push(dataBaris);
+    });
   }
   
-  // Cek minimal 1 baris
+  console.log("📦 Data yang akan disimpan:", baris);
+  
   if(baris.length === 0) {
     alert("❌ Tambahkan minimal 1 barang");
     return;
   }
   
-  // Cek kelengkapan setiap baris
+  // Validasi setiap baris
   for(let i = 0; i < baris.length; i++) {
     if(!baris[i].jenis) {
       alert("❌ Baris ke-" + (i+1) + " : Jenis belum dipilih");
@@ -365,13 +388,11 @@ async function simpan() {
     }
   }
   
-  console.log("📦 Data yang akan disimpan:", baris);
-  
+  // ===== KIRIM KE SUPABASE =====
   try {
     let berhasil = 0;
     let gagal = 0;
     
-    // Simpan satu per satu
     for (let i = 0; i < baris.length; i++) {
       const item = baris[i];
       
@@ -380,8 +401,7 @@ async function simpan() {
       const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?apikey=${SUPABASE_KEY}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(item)
       });
@@ -396,25 +416,27 @@ async function simpan() {
       }
     }
     
-    // Tampilkan hasil
+    // ===== TAMPILKAN HASIL =====
     if (berhasil > 0) {
       alert(`✅ ${berhasil} data berhasil disimpan!${gagal > 0 ? `\n⚠️ ${gagal} data gagal` : ''}`);
       
       if (gagal === 0) {
-        // Kosongkan tabel
+        // Kosongkan tabel (hapus semua baris kecuali header)
         while(inputTable.rows.length > 1) {
           inputTable.deleteRow(1);
         }
         
-        // Reset input
+        // Reset input tanggal dan brand
         tanggal.value = '';
         brand.value = '';
         
         // Tambah baris baru
         tambahBaris();
+        
+        console.log("✅ Form sudah direset");
       }
     } else {
-      alert("❌ Semua data gagal disimpan. Cek console (F12) untuk detail.");
+      alert("❌ Semua data gagal disimpan. Lihat console (F12) untuk detail.");
     }
     
   } catch (err) {
@@ -441,12 +463,22 @@ async function testKoneksi() {
 }
 
 // ============== EVENT LISTENER ==============
-btnTambah.onclick = tambahBaris;
-btnSimpan.onclick = simpan;
+btnTambah.onclick = function() {
+  console.log("➕ Tombol Tambah diklik");
+  tambahBaris();
+};
+
+btnSimpan.onclick = function() {
+  console.log("💾 Tombol Simpan diklik");
+  simpan();
+};
 
 // ============== INIT ==============
-tambahBaris();
-testKoneksi();
+console.log("🏁 Inisialisasi...");
+tambahBaris(); // Tambah baris pertama
+testKoneksi(); // Test koneksi ke Supabase
+
+console.log("✅ Siap! Silakan input data.");
 </script>
 </body>
 </html>
