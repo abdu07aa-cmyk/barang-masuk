@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 <title>Input Barang Masuk</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 * {
   box-sizing: border-box;
@@ -24,7 +23,6 @@ body {
   margin: 0 auto;
 }
 
-/* Header */
 .app-header {
   display: flex;
   align-items: center;
@@ -109,7 +107,6 @@ body {
   box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
 }
 
-/* Table Input */
 .table-wrapper {
   background: #f8fafc;
   border-radius: 20px;
@@ -150,7 +147,6 @@ td select, td input {
   background: white;
 }
 
-/* Buttons */
 .btn {
   padding: 16px;
   border-radius: 40px;
@@ -204,14 +200,11 @@ td select, td input {
 <body>
 
 <div class="container">
-  
-  <!-- Header dengan navigasi -->
   <div class="app-header">
     <h1>📦 StockMaster</h1>
     <a href="data.html" class="nav-link">📋 Lihat Data</a>
   </div>
 
-  <!-- Card Input -->
   <div class="card">
     <div class="card-header">
       <span style="font-size: 1.8rem;">📥</span>
@@ -242,35 +235,32 @@ td select, td input {
     </div>
   </div>
 
-  <!-- Info Card -->
   <div class="card" style="background: #eef2ff; border-color: #2563eb;">
     <div style="display: flex; align-items: center; gap: 12px;">
       <span style="font-size: 2rem;">💡</span>
       <div>
         <div style="font-weight: 600; color: #1e40af;">Tips:</div>
-        <div style="font-size: 0.9rem; color: #2563eb;">Klik "Lihat Data" untuk melihat, filter, dan export data yang sudah tersimpan.</div>
+        <div style="font-size: 0.9rem; color: #2563eb;">Klik "Lihat Data" untuk melihat data yang sudah tersimpan.</div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// ============== KONFIGURASI SUPABASE ==============
-const supabase = window.supabase.createClient(
-  "https://dggspzjibisapdaowkkj.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY"
-);
+// ============== KONFIGURASI ==============
+const SUPABASE_URL = "https://dggspzjibisapdaowkkj.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY";
 
 // ============== DATA DROPDOWN ==============
-const jenis=["BOOKLET","FILTER WHITE","FILTER BROWN","FILTER PRINTED","DISPLAY","LAYER BOX","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER",
-"MIKA","JAR","STICKER JAR","STICKER MIKA","STICKER FILTER","STICKER BULAT BESAR","STICKER BULAT KECIL","TUBE","FILTER GREEN","FILTER WHITE","FILTER BLUE","FILTER 21","FILTER 26",
-"FILTER 30","FILTER 40","TRAPEZOID","HOLDER S","HOLDER M","HOLDER L","HOLDER 9X9","HOLDER 10X10"];
+const jenis = ["BOOKLET","FILTER WHITE","FILTER BROWN","FILTER PRINTED","DISPLAY","LAYER BOX","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER",
+  "MIKA","JAR","STICKER JAR","STICKER MIKA","STICKER FILTER","STICKER BULAT BESAR","STICKER BULAT KECIL","TUBE","FILTER GREEN","FILTER WHITE","FILTER BLUE","FILTER 21","FILTER 26",
+  "FILTER 30","FILTER 40","TRAPEZOID","HOLDER S","HOLDER M","HOLDER L","HOLDER 9X9","HOLDER 10X10"];
 
-const paper=["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","42 LEAVES","50 LEAVES","51 LEAVES","52 LEAVES",
-"60 LEAVES","70 MM","83 MM","84 MM","98 MM","109 MM","110 MM"];
+const paper = ["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","42 LEAVES","50 LEAVES","51 LEAVES","52 LEAVES",
+  "60 LEAVES","70 MM","83 MM","84 MM","98 MM","109 MM","110 MM"];
 
-const size=["1 1/4","18X6,5","18X8","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PACK","8 CONES/PACK","700 CONES/BOX",
-"729 CONES/BOX","900 CONES/BOX","50 CONES/JARS","800 CONES/BOX","1000 CONES/BOX"];
+const size = ["1 1/4","18X6,5","18X8","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PACK","8 CONES/PACK","700 CONES/BOX",
+  "729 CONES/BOX","900 CONES/BOX","50 CONES/JARS","800 CONES/BOX","1000 CONES/BOX"];
 
 const opt = l => '<option></option>' + l.map(v => `<option>${v}</option>`).join('');
 
@@ -281,18 +271,19 @@ const inputTable = document.getElementById('inputTable');
 const btnTambah = document.getElementById('btnTambah');
 const btnSimpan = document.getElementById('btnSimpan');
 
-// ============== FUNGSI ==============
+// ============== FUNGSI TAMBAH BARIS ==============
 function tambahBaris() {
   const r = inputTable.insertRow(-1);
   r.innerHTML = `
     <td><select>${opt(jenis)}</select></td>
     <td><select>${opt(paper)}</select></td>
     <td><select>${opt(size)}</select></td>
-    <td><input type="number" min="1"></td>
+    <td><input type="number" min="1" value="1"></td>
     <td><button class="btn-small" style="background:#ef4444; color:white; border:none;" onclick="this.closest('tr').remove()">✕</button></td>
   `;
 }
 
+// ============== FUNGSI SIMPAN ==============
 async function simpan() {
   if(!tanggal.value || !brand.value) {
     alert("❌ Tanggal & Brand wajib diisi");
@@ -317,26 +308,35 @@ async function simpan() {
     };
   });
 
-  const { error } = await supabase.from("barang_masuk").insert(dataToInsert);
-  
-  if(error) {
-    alert("❌ Error: " + error.message);
-    return;
+  try {
+    let berhasil = 0;
+    
+    for (let item of dataToInsert) {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?apikey=${SUPABASE_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item)
+      });
+      
+      if (response.ok) berhasil++;
+    }
+    
+    if (berhasil > 0) {
+      inputTable.innerHTML = '<tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
+      tanggal.value = '';
+      brand.value = '';
+      tambahBaris();
+      alert(`✅ ${berhasil} data berhasil disimpan!`);
+    }
+    
+  } catch (err) {
+    alert("❌ Error: " + err.message);
   }
-
-  // Reset form
-  inputTable.innerHTML = '<tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
-  tanggal.value = '';
-  brand.value = '';
-  
-  alert("✅ " + dataToInsert.length + " data berhasil disimpan!");
 }
 
-// ============== EVENT LISTENER ==============
+// ============== EVENT ==============
 btnTambah.onclick = tambahBaris;
 btnSimpan.onclick = simpan;
-
-// Tambah baris pertama otomatis
 tambahBaris();
 </script>
 </body>
