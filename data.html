@@ -376,6 +376,9 @@ function filterTable() {
   let visibleCount = 0;
   
   [...dataTable.rows].slice(1).forEach(r => {
+    // Skip baris pesan "Data kosong"
+    if (r.cells.length === 1 && r.cells[0].colSpan === 7) return;
+    
     const cocok =
       (!tgl || r.cells[0].textContent === tgl) &&
       (!brand || r.cells[1].textContent.toLowerCase().includes(brand)) &&
@@ -457,6 +460,9 @@ async function loadData() {
       tr.innerHTML = '<td colspan="7" style="text-align:center; padding:40px;">📭 Data kosong</td>';
       dataTable.appendChild(tr);
     }
+    
+    isiFilterDropdown();
+    filterTable();
     
   } catch (err) {
     console.error("❌ Fatal error:", err);
@@ -581,7 +587,7 @@ window.deleteRow = async function(btn) {
 function exportExcelTable() {
   let rows = [...dataTable.rows]
     .slice(1)
-    .filter(r => r.style.display !== "none");
+    .filter(r => r.style.display !== "none" && r.cells.length > 1);
 
   if(rows.length === 0) {
     alert("Tidak ada data terfilter");
@@ -611,7 +617,10 @@ function exportExcelTable() {
 
 // ============== KIRIM WA ==============
 function sendWATable() {
-  const rows = [...dataTable.rows].slice(1).filter(r => r.style.display !== "none");
+  const rows = [...dataTable.rows]
+    .slice(1)
+    .filter(r => r.style.display !== "none" && r.cells.length > 1);
+    
   if(rows.length === 0) { 
     alert("Tidak ada data terfilter"); 
     return; 
@@ -630,4 +639,29 @@ function sendWATable() {
 }
 
 // ============== EVENT LISTENER ==============
-filterTanggal.onchange = filterTable
+filterTanggal.addEventListener('change', filterTable);
+filterBrand.addEventListener('keyup', filterTable);
+filterJenis.addEventListener('change', filterTable);
+filterPaper.addEventListener('change', filterTable);
+filterSize.addEventListener('change', filterTable);
+
+btnResetFilter.addEventListener('click', () => {
+  filterTanggal.value = "";
+  filterBrand.value = "";
+  filterJenis.value = "";
+  filterPaper.value = "";
+  filterSize.value = "";
+  filterTable();
+});
+
+btnExcelTable.addEventListener('click', exportExcelTable);
+btnWATable.addEventListener('click', sendWATable);
+
+// ============== MULAI ==============
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("🚀 Memulai aplikasi...");
+  loadData();
+});
+</script>
+</body>
+</html>
