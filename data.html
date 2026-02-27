@@ -411,16 +411,57 @@ function addRowToTable(d) {
 
 // ============== LOAD DATA ==============
 async function loadData() {
-  const { data } = await supabase
-    .from("barang_masuk")
-    .select("*")
-    .order("tanggal", { ascending: false })
-    .order("id", { ascending: false });
-  
-  dataTable.innerHTML = '<tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
-  data.forEach(d => addRowToTable(d));
-  isiFilterDropdown();
-  filterTable();
+  try {
+    console.log("📥 Mencoba mengambil data...");
+    
+    // TEST 1: Coba pake fetch langsung (bukan supabase client)
+    const testFetch = await fetch('https://dggspzjibisapdaowkkj.supabase.co/rest/v1/barang_masuk?select=*', {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY'
+      }
+    });
+    
+    if (!testFetch.ok) {
+      console.error("❌ Fetch gagal:", testFetch.status);
+      const errorText = await testFetch.text();
+      console.error("Pesan error:", errorText);
+      alert("Error " + testFetch.status + ": " + errorText);
+      return;
+    }
+    
+    const testData = await testFetch.json();
+    console.log("✅ Fetch berhasil! Data:", testData);
+    
+    // TEST 2: Coba pake supabase client
+    const { data, error } = await supabase
+      .from("barang_masuk")
+      .select("*");
+    
+    if (error) {
+      console.error("❌ Supabase client error:", error);
+      alert("Supabase error: " + error.message);
+      return;
+    }
+    
+    console.log("✅ Supabase client success:", data);
+    
+    // Tampilkan data
+    dataTable.innerHTML = '<tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>';
+    
+    if (data && data.length > 0) {
+      data.forEach(d => addRowToTable(d));
+      totalSpan.textContent = data.length + ' item';
+    } else {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td colspan="7" style="text-align:center; padding:40px;">📭 Data kosong</td>';
+      dataTable.appendChild(tr);
+    }
+    
+  } catch (err) {
+    console.error("❌ Fatal error:", err);
+    alert("Error: " + err.message);
+  }
 }
 
 // ============== EDIT ROW ==============
