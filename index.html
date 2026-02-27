@@ -14,9 +14,9 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #f1f5f9;
-  padding: 16px;
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  background: #f8fafc;
+  padding: 12px;
   min-height: 100vh;
 }
 
@@ -25,397 +25,272 @@ body {
   margin: 0 auto;
 }
 
-/* Header Styles */
-.app-header {
+h3 {
+  font-size: 1.3rem;
+  margin: 16px 0 12px 0;
+  color: #0f172a;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  gap: 6px;
+  border-left: 5px solid #3b82f6;
+  padding-left: 12px;
 }
 
-.app-header h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: -0.5px;
-}
-
-.badge {
-  background: white;
-  padding: 6px 12px;
-  border-radius: 40px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #2563eb;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-/* Card Styles */
 .card {
   background: white;
-  border-radius: 28px;
-  padding: 20px;
+  border-radius: 20px;
+  padding: 16px;
   margin-bottom: 20px;
-  box-shadow: 0 10px 25px -8px rgba(0,0,0,0.1);
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  transition: transform 0.2s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
 }
 
-.card:hover {
-  transform: translateY(-2px);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-}
-
-.card-header h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #0f172a;
-  flex: 1;
-}
-
-.card-header-icon {
-  width: 40px;
-  height: 40px;
-  background: #eef2ff;
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  color: #2563eb;
-}
-
-/* Form Styles */
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.input-field {
-  position: relative;
+.input-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.input-field label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: 4px;
-  display: block;
-  margin-left: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+.input-row input,
+.input-row select {
+  flex: 1 1 45%;
 }
 
-.input-field input,
-.input-field select {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 18px;
-  border: 1.5px solid #e2e8f0;
+label {
+  font-size: 0.85rem;
+  color: #334155;
+  font-weight: 500;
+  margin-bottom: -4px;
+}
+
+input, select, button {
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid #cbd5e1;
   font-size: 15px;
-  background: #f8fafc;
+  background: white;
+  width: 100%;
   outline: none;
   transition: all 0.2s;
 }
 
-.input-field input:focus,
-.input-field select:focus {
-  border-color: #2563eb;
-  background: white;
-  box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+input:focus, select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
 }
 
-/* Table Styles */
-.table-wrapper {
-  background: #f8fafc;
-  border-radius: 20px;
-  border: 1.5px solid #e2e8f0;
-  overflow: hidden;
-  margin: 16px 0;
+button {
+  font-weight: 600;
+  border: none;
+  background: #f1f5f9;
+  color: #1e293b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+  box-shadow: 0 8px 14px -8px #3b82f6;
+}
+
+.btn-success {
+  background: #22c55e;
+  color: white;
+  box-shadow: 0 8px 14px -8px #22c55e;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 8px 14px -8px #ef4444;
+}
+
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+  box-shadow: 0 8px 14px -8px #f59e0b;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid #3b82f6;
+  color: #3b82f6;
 }
 
 .table-responsive {
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  margin: 10px 0;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 580px;
+  min-width: 600px;
   font-size: 13px;
 }
 
 th {
-  background: #f1f4f9;
-  color: #334155;
+  background: #f1f5f9;
+  color: #0f172a;
   font-weight: 600;
-  padding: 14px 8px;
+  padding: 12px 6px;
   white-space: nowrap;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
 }
 
 td {
-  padding: 12px 8px;
+  padding: 10px 6px;
   border-bottom: 1px solid #e2e8f0;
   color: #1e293b;
-  font-weight: 500;
 }
 
 tr:last-child td {
   border-bottom: none;
 }
 
-/* Button Styles */
-.btn {
-  padding: 14px 20px;
-  border-radius: 40px;
-  font-weight: 600;
-  font-size: 15px;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s;
-  width: 100%;
-}
-
-.btn:active {
-  transform: scale(0.98);
-}
-
-.btn-primary {
-  background: #2563eb;
-  color: white;
-  box-shadow: 0 8px 18px -8px #2563eb;
-}
-
-.btn-success {
-  background: #16a34a;
-  color: white;
-  box-shadow: 0 8px 18px -8px #16a34a;
-}
-
-.btn-danger {
-  background: #dc2626;
-  color: white;
-  box-shadow: 0 8px 18px -8px #dc2626;
-}
-
-.btn-warning {
-  background: #d97706;
-  color: white;
-  box-shadow: 0 8px 18px -8px #d97706;
-}
-
-.btn-outline {
-  background: white;
-  border: 1.5px solid #2563eb;
-  color: #2563eb;
-  box-shadow: none;
-}
-
-.btn-small {
-  padding: 8px 16px;
+.btn-kecil {
+  padding: 8px 12px;
   font-size: 12px;
-  border-radius: 30px;
-  width: auto;
-  margin: 2px;
-}
-
-/* Filter Grid */
-.filter-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.filter-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-/* Action Buttons Grid */
-.action-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-/* Status Badge */
-.status-badge {
-  background: #e6f7e6;
-  color: #16a34a;
-  padding: 4px 12px;
   border-radius: 40px;
-  font-size: 0.7rem;
-  font-weight: 600;
+  margin: 2px;
+  width: auto;
   display: inline-block;
 }
 
-/* Divider */
-.divider {
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
-  margin: 16px 0;
+.filter-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
-/* Helper Classes */
-.text-center { text-align: center; }
-.text-small { font-size: 0.75rem; color: #64748b; }
-.mt-2 { margin-top: 8px; }
-.mb-2 { margin-bottom: 8px; }
-.font-bold { font-weight: 600; }
+.filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
-/* Input Table Specific */
-#inputTable td select,
-#inputTable td input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 16px;
-  border: 1.5px solid #e2e8f0;
-  background: white;
+.filter-row > * {
+  flex: 1 1 calc(50% - 4px);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.action-buttons button {
+  flex: 1 1 calc(50% - 5px);
+}
+
+.mt-2 {
+  margin-top: 12px;
+}
+
+.mb-1 {
+  margin-bottom: 6px;
+}
+
+.text-small {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* input table khusus mobile */
+#inputTable {
+  min-width: 100%;
+}
+
+#inputTable th {
   font-size: 12px;
 }
 
-#inputTable .btn-small {
-  padding: 8px 12px;
-  white-space: nowrap;
+#inputTable td select,
+#inputTable td input {
+  width: 100%;
+  padding: 8px;
+  font-size: 12px;
 }
 
-/* Edit Mode Styles */
-.edit-mode input,
-.edit-mode select {
-  border: 2px solid #2563eb;
-  background: white;
+/* tombol hapus di input table */
+#inputTable .btn-red {
+  padding: 8px 10px;
+  font-size: 12px;
+  width: auto;
 }
 </style>
 </head>
 <body>
 
 <div class="container">
-  
-  <!-- App Header -->
-  <div class="app-header">
-    <h1>📦 StockMaster</h1>
-    <span class="badge">v2.0 · Mobile</span>
+
+<h3>📦 Barang Masuk</h3>
+
+<div class="card">
+  <div class="input-group">
+    <input type="date" id="tanggal" class="mb-1">
+    <input type="text" id="brand" placeholder="Nama Brand">
   </div>
 
-  <!-- Input Card -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-header-icon">📥</div>
-      <h3>Input Barang Masuk</h3>
-    </div>
-    
-    <div class="input-group">
-      <div class="input-field">
-        <label>Tanggal</label>
-        <input type="date" id="tanggal">
-      </div>
-      <div class="input-field">
-        <label>Nama Brand</label>
-        <input type="text" id="brand" placeholder="Contoh: BRAND ABC">
-      </div>
-    </div>
+  <div class="table-responsive">
+    <table id="inputTable">
+      <tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
+    </table>
+  </div>
 
-    <div class="table-wrapper">
-      <div class="table-responsive">
-        <table id="inputTable">
-          <tr><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
-        </table>
-      </div>
-    </div>
+  <div class="action-buttons">
+    <button id="btnTambah" class="btn-primary">+ Tambah</button>
+    <button id="btnSimpan" class="btn-success">💾 Simpan</button>
+  </div>
+</div>
 
-    <div class="action-grid">
-      <button id="btnTambah" class="btn btn-outline">+ Tambah Baris</button>
-      <button id="btnSimpan" class="btn btn-success">💾 Simpan Semua</button>
+<h3>🔍 Data Tersimpan</h3>
+
+<div class="card">
+  <div class="filter-grid">
+    <div class="filter-row">
+      <input type="date" id="filterTanggal" placeholder="Filter Tanggal">
+      <input type="text" id="filterBrand" placeholder="Cari Brand">
+    </div>
+    <div class="filter-row">
+      <select id="filterJenis"><option value="">Semua Jenis</option></select>
+      <select id="filterPaper"><option value="">Semua Paper</option></select>
+    </div>
+    <div class="filter-row">
+      <select id="filterSize"><option value="">Semua Size</option></select>
+      <button class="btn-outline" id="btnResetFilter">Reset</button>
     </div>
   </div>
 
-  <!-- Data Card -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-header-icon">🔍</div>
-      <h3>Data Tersimpan</h3>
-    </div>
-    
-    <!-- Filter Section -->
-    <div class="filter-grid">
-      <div class="filter-row">
-        <div class="input-field">
-          <label>Filter Tanggal</label>
-          <input type="date" id="filterTanggal" placeholder="Pilih tanggal">
-        </div>
-        <div class="input-field">
-          <label>Cari Brand</label>
-          <input type="text" id="filterBrand" placeholder="Ketik brand...">
-        </div>
-      </div>
-      
-      <div class="filter-row">
-        <div class="input-field">
-          <label>Jenis</label>
-          <select id="filterJenis"><option value="">Semua Jenis</option></select>
-        </div>
-        <div class="input-field">
-          <label>Paper</label>
-          <select id="filterPaper"><option value="">Semua Paper</option></select>
-        </div>
-      </div>
-      
-      <div class="filter-row">
-        <div class="input-field">
-          <label>Size</label>
-          <select id="filterSize"><option value="">Semua Size</option></select>
-        </div>
-        <div class="input-field" style="display: flex; align-items: flex-end;">
-          <button class="btn btn-outline btn-small" id="btnResetFilter" style="width: 100%;">⟲ Reset</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Data Table -->
-    <div class="table-wrapper">
-      <div class="table-responsive">
-        <table id="dataTable">
-          <tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
-        </table>
-      </div>
-    </div>
-
-    <!-- Export Actions -->
-    <div class="action-grid">
-      <button id="btnExcelTable" class="btn btn-primary">📄 Export Excel</button>
-      <button id="btnWATable" class="btn btn-success">📲 Kirim WA</button>
-    </div>
-    
-    <div class="divider"></div>
-    
-    <div class="text-center">
-      <span class="status-badge">✨ Data terfilter akan diekspor</span>
-    </div>
-    <div class="text-small text-center mt-2">
-      Total data: <span id="totalData" class="font-bold">0</span> item
-    </div>
+  <div class="table-responsive">
+    <table id="dataTable">
+      <tr><th>Tanggal</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th><th>Qty</th><th>Aksi</th></tr>
+    </table>
   </div>
+
+  <div class="action-buttons">
+    <button id="btnExcelTable" class="btn-success">📄 Excel</button>
+    <button id="btnWATable" class="btn-success">📲 WA</button>
+  </div>
+  <div class="text-small" style="text-align:center; margin-top:8px;">Data terfilter akan diekspor</div>
+</div>
+
 </div>
 
 <script>
@@ -462,7 +337,6 @@ function filterTable(){
   const paperVal = filterPaper.value;
   const sizeVal  = filterSize.value;
 
-  let visibleCount = 0;
   [...dataTable.rows].slice(1).forEach(r=>{
     const cocok =
       (!tgl || r.cells[0].textContent === tgl) &&
@@ -472,12 +346,7 @@ function filterTable(){
       (!sizeVal || r.cells[4].textContent === sizeVal);
 
     r.style.display = cocok ? "" : "none";
-    if(cocok) visibleCount++;
   });
-  
-  // Update total data
-  const totalSpan = document.getElementById('totalData');
-  if(totalSpan) totalSpan.textContent = visibleCount;
 }
 
 // ================= Input Table ===================
@@ -487,7 +356,7 @@ function tambahBaris(){
   <td><select>${opt(paper)}</select></td>
   <td><select>${opt(size)}</select></td>
   <td><input type="number" min="1"></td>
-  <td><button class="btn-danger btn-small" onclick="this.closest('tr').remove()">✕</button></td>`;
+  <td><button class="btn-danger btn-kecil" onclick="this.closest('tr').remove()">X</button></td>`;
 }
 
 // ================= Data Table ===================
@@ -497,8 +366,8 @@ function addRowToTable(d){
   tr.innerHTML=`<td>${formatTanggal(d.tanggal)}</td>
 <td>${d.brand}</td><td>${d.jenis}</td><td>${d.paper}</td>
 <td>${d.size}</td><td>${d.qty}</td>
-<td><button class="btn-warning btn-small" onclick="editRow(this)">Edit</button>
-<button class="btn-danger btn-small" onclick="deleteRow(this)">Hapus</button></td>`;
+<td><button class="btn-warning btn-kecil" onclick="editRow(this)">Edit</button>
+<button class="btn-danger btn-kecil" onclick="deleteRow(this)">Hapus</button></td>`;
   dataTable.appendChild(tr);
 }
 
@@ -558,15 +427,15 @@ window.editRow = function(btn){
   tr.dataset.oldBrand   = brandText;
 
   tr.innerHTML = `
-    <td><input type="date" value="${tanggalText}" style="padding:8px; border-radius:12px;"></td>
-    <td><input type="text" value="${brandText}" style="padding:8px; border-radius:12px;"></td>
-    <td><select style="padding:8px; border-radius:12px;">${opt(jenis)}</select></td>
-    <td><select style="padding:8px; border-radius:12px;">${opt(paper)}</select></td>
-    <td><select style="padding:8px; border-radius:12px;">${opt(size)}</select></td>
-    <td><input type="number" min="1" value="${qtyText}" style="padding:8px; width:70px; border-radius:12px;"></td>
+    <td><input type="date" value="${tanggalText}" style="padding:6px"></td>
+    <td><input type="text" value="${brandText}" style="padding:6px"></td>
+    <td><select style="padding:6px">${opt(jenis)}</select></td>
+    <td><select style="padding:6px">${opt(paper)}</select></td>
+    <td><select style="padding:6px">${opt(size)}</select></td>
+    <td><input type="number" min="1" value="${qtyText}" style="padding:6px; width:70px"></td>
     <td>
-      <button class="btn-success btn-small" onclick="saveEdit(this)">✓</button>
-      <button class="btn-danger btn-small" onclick="cancelEdit(this,'${tanggalText}','${brandText}','${jenisText}','${paperText}','${sizeText}','${qtyText}')">✕</button>
+      <button class="btn-success btn-kecil" onclick="saveEdit(this)">Simpan</button>
+      <button class="btn-danger btn-kecil" onclick="cancelEdit(this,'${tanggalText}','${brandText}','${jenisText}','${paperText}','${sizeText}','${qtyText}')">Batal</button>
     </td>
   `;
 
@@ -579,8 +448,8 @@ window.cancelEdit = function(btn,tanggal,brand,jenis,paper,size,qty){
   const tr=btn.closest('tr');
   tr.innerHTML=`<td>${formatTanggal(tanggal)}</td>
 <td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
-<td><button class="btn-warning btn-small" onclick="editRow(this)">Edit</button>
-<button class="btn-danger btn-small" onclick="deleteRow(this)">Hapus</button></td>`;
+<td><button class="btn-warning btn-kecil" onclick="editRow(this)">Edit</button>
+<button class="btn-danger btn-kecil" onclick="deleteRow(this)">Hapus</button></td>`;
 }
 
 window.saveEdit = async function(btn){
@@ -610,8 +479,8 @@ if(tanggal !== oldTanggal || brand !== oldBrand){
 
   tr.innerHTML=`<td>${formatTanggal(tanggal)}</td>
 <td>${brand}</td><td>${jenis}</td><td>${paper}</td><td>${size}</td><td>${qty}</td>
-<td><button class="btn-warning btn-small" onclick="editRow(this)">Edit</button>
-<button class="btn-danger btn-small" onclick="deleteRow(this)">Hapus</button></td>`;
+<td><button class="btn-warning btn-kecil" onclick="editRow(this)">Edit</button>
+<button class="btn-danger btn-kecil" onclick="deleteRow(this)">Hapus</button></td>`;
   filterTable();
 }
 
@@ -622,7 +491,6 @@ window.deleteRow = async function(btn){
   const { error }=await supabase.from("barang_masuk").delete().eq('id',id);
   if(error){ alert(error.message); return; }
   tr.remove();
-  filterTable();
 }
 
 // ================= Export Excel Filtered ===================
