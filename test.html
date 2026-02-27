@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Supabase</title>
+</head>
+<body>
+    <h2>Test Koneksi Supabase</h2>
+    <div id="result"></div>
+
+    <script>
+    const SUPABASE_URL = "https://dggspzjibisapdaowkkj.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY";
+
+    async function testConnection() {
+        const result = document.getElementById('result');
+        result.innerHTML = '⏳ Mencoba koneksi...';
+        
+        try {
+            // TEST 1: API key di URL (paling ampuh)
+            result.innerHTML += '<br>📡 Test 1: API key di URL...';
+            const url1 = `${SUPABASE_URL}/rest/v1/barang_masuk?select=*&apikey=${SUPABASE_KEY}`;
+            const res1 = await fetch(url1);
+            
+            if (res1.ok) {
+                const data = await res1.json();
+                result.innerHTML += `<br>✅ TEST 1 BERHASIL! Data: ${data.length} item`;
+                result.innerHTML += `<br>📊 Contoh: ${JSON.stringify(data.slice(0, 2))}`;
+            } else {
+                result.innerHTML += `<br>❌ TEST 1 gagal: ${res1.status}`;
+            }
+            
+            // TEST 2: API key di header
+            result.innerHTML += '<br>📡 Test 2: API key di header...';
+            const res2 = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?select=*`, {
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`
+                }
+            });
+            
+            if (res2.ok) {
+                result.innerHTML += `<br>✅ TEST 2 BERHASIL!`;
+            } else {
+                result.innerHTML += `<br>❌ TEST 2 gagal: ${res2.status}`;
+            }
+            
+        } catch (err) {
+            result.innerHTML += `<br>❌ Error: ${err.message}`;
+        }
+    }
+
+    testConnection();
+    </script>
+</body>
+</html>
