@@ -345,29 +345,19 @@ td {
 <script>
 // ================= KONFIGURASI =================
 const SUPABASE_URL = "https://dggspzjibisapdaowkkj.supabase.co";
-const SUPABASE_KEY = "ISI_KEY_KAMU_DI_SINI";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY";
 
-// ================= PAGINATION =================
+// ================= STATE =================
 let semuaData = [];
+let dataTerfilter = [];
 let currentPage = 1;
 const rowsPerPage = 25;
-
-// ================= DATA DROPDOWN =================
-const jenis = ["BOOKLET","FILTER WHITE","FILTER BROWN","FILTER PRINTED","DISPLAY","LAYER BOX","PLAT","MAGNET","DOUBLE TAPE","COVER","PAPER",
-"MIKA","JAR","STICKER JAR","STICKER MIKA","STICKER FILTER","STICKER BULAT BESAR","STICKER BULAT KECIL","TUBE","FILTER GREEN","FILTER BLUE",
-"FILTER 21","FILTER 26","FILTER 30","FILTER 40","TRAPEZOID","HOLDER S","HOLDER M","HOLDER L","HOLDER 9X9","HOLDER 10X10"];
-
-const paper = ["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","42 LEAVES","50 LEAVES","51 LEAVES","52 LEAVES",
-"60 LEAVES","70 MM","83 MM","84 MM","98 MM","109 MM","110 MM"];
-
-const size = ["1 1/4","18X6,5","18X8","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PACK","8 CONES/PACK",
-"700 CONES/BOX","729 CONES/BOX","900 CONES/BOX","50 CONES/JARS","800 CONES/BOX","1000 CONES/BOX"];
 
 // ================= ELEMENT =================
 const dataTable = document.getElementById("dataTable");
 const totalSpan = document.getElementById("totalData");
 
-// ================= FORMAT TANGGAL =================
+// ================= FORMAT =================
 function formatTanggal(tgl){
   if(!tgl) return "";
   const [y,m,d] = tgl.split("-");
@@ -383,9 +373,42 @@ async function loadData(){
     }
   });
 
-  const data = await res.json();
-  semuaData = data || [];
+  semuaData = await res.json() || [];
+  dataTerfilter = [...semuaData];
   currentPage = 1;
+  tampilkanData();
+}
+
+// ================= FILTER =================
+function applyFilter(){
+  const tgl = document.getElementById("filterTanggal").value;
+  const brand = document.getElementById("filterBrand").value.toLowerCase();
+  const jenis = document.getElementById("filterJenis").value;
+  const paper = document.getElementById("filterPaper").value;
+  const size = document.getElementById("filterSize").value;
+
+  dataTerfilter = semuaData.filter(d=>{
+    return (
+      (!tgl || d.tanggal === tgl) &&
+      (!brand || (d.brand||"").toLowerCase().includes(brand)) &&
+      (!jenis || d.jenis === jenis) &&
+      (!paper || d.paper === paper) &&
+      (!size || d.size === size)
+    );
+  });
+
+  currentPage = 1;
+  tampilkanData();
+}
+
+function resetFilter(){
+  document.getElementById("filterTanggal").value="";
+  document.getElementById("filterBrand").value="";
+  document.getElementById("filterJenis").value="";
+  document.getElementById("filterPaper").value="";
+  document.getElementById("filterSize").value="";
+  dataTerfilter = [...semuaData];
+  currentPage=1;
   tampilkanData();
 }
 
@@ -403,15 +426,16 @@ function tampilkanData(){
     </tr>
   `;
 
-  if(semuaData.length === 0){
-    dataTable.innerHTML += `<tr><td colspan="7" style="text-align:center;padding:40px;">📭 Belum ada data</td></tr>`;
-    totalSpan.textContent = "0 item";
+  if(dataTerfilter.length === 0){
+    dataTable.innerHTML += `<tr><td colspan="7" style="text-align:center;padding:40px;">📭 Tidak ada data</td></tr>`;
+    totalSpan.textContent="0 item";
+    updatePagination();
     return;
   }
 
-  const start = (currentPage-1)*rowsPerPage;
-  const end = start + rowsPerPage;
-  const pageData = semuaData.slice(start,end);
+  const start=(currentPage-1)*rowsPerPage;
+  const end=start+rowsPerPage;
+  const pageData=dataTerfilter.slice(start,end);
 
   pageData.forEach(d=>{
     dataTable.innerHTML += `
@@ -430,28 +454,26 @@ function tampilkanData(){
     `;
   });
 
-  totalSpan.textContent = semuaData.length + " item";
+  totalSpan.textContent = dataTerfilter.length + " item";
   updatePagination();
 }
 
 // ================= PAGINATION =================
 function updatePagination(){
-  let info = document.getElementById("pageInfo");
-  if(!info) return;
-  const totalPages = Math.ceil(semuaData.length/rowsPerPage) || 1;
-  info.innerText = `Page ${currentPage} of ${totalPages}`;
+  const totalPages=Math.ceil(dataTerfilter.length/rowsPerPage)||1;
+  document.getElementById("pageInfo").innerText=`Page ${currentPage} of ${totalPages}`;
 }
 
 function nextPage(){
-  const totalPages = Math.ceil(semuaData.length/rowsPerPage);
-  if(currentPage < totalPages){
+  const totalPages=Math.ceil(dataTerfilter.length/rowsPerPage);
+  if(currentPage<totalPages){
     currentPage++;
     tampilkanData();
   }
 }
 
 function prevPage(){
-  if(currentPage > 1){
+  if(currentPage>1){
     currentPage--;
     tampilkanData();
   }
@@ -459,7 +481,7 @@ function prevPage(){
 
 // ================= HAPUS =================
 async function hapusData(id){
-  if(!confirm("Yakin mau hapus?")) return;
+  if(!confirm("Yakin hapus data ini?")) return;
 
   await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?id=eq.${id}`,{
     method:"DELETE",
@@ -481,44 +503,34 @@ async function editData(id){
     }
   });
 
-  const data = await res.json();
-  const d = data[0];
+  const d=(await res.json())[0];
 
-  document.getElementById("editId").value = d.id;
-  document.getElementById("editTanggal").value = d.tanggal;
-  document.getElementById("editBrand").value = d.brand;
-  document.getElementById("editQty").value = d.qty;
+  editId.value=d.id;
+  editTanggal.value=d.tanggal;
+  editBrand.value=d.brand;
+  editQty.value=d.qty;
+  editJenis.innerHTML=`<option>${d.jenis}</option>`;
+  editPaper.innerHTML=`<option>${d.paper}</option>`;
+  editSize.innerHTML=`<option>${d.size}</option>`;
 
-  document.getElementById("editJenis").innerHTML =
-    jenis.map(v=>`<option ${v===d.jenis?"selected":""}>${v}</option>`).join("");
-
-  document.getElementById("editPaper").innerHTML =
-    paper.map(v=>`<option ${v===d.paper?"selected":""}>${v}</option>`).join("");
-
-  document.getElementById("editSize").innerHTML =
-    size.map(v=>`<option ${v===d.size?"selected":""}>${v}</option>`).join("");
-
-  document.getElementById("modalEdit").style.display="flex";
+  modalEdit.style.display="flex";
 }
 
-// ================= UPDATE =================
 async function updateData(){
-  const id = document.getElementById("editId").value;
-
-  await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?id=eq.${id}`,{
+  await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?id=eq.${editId.value}`,{
     method:"PATCH",
     headers:{
-      apikey: SUPABASE_KEY,
+      apikey:SUPABASE_KEY,
       Authorization:`Bearer ${SUPABASE_KEY}`,
       "Content-Type":"application/json"
     },
-    body: JSON.stringify({
-      tanggal: document.getElementById("editTanggal").value,
-      brand: document.getElementById("editBrand").value,
-      jenis: document.getElementById("editJenis").value,
-      paper: document.getElementById("editPaper").value,
-      size: document.getElementById("editSize").value,
-      qty: Number(document.getElementById("editQty").value)
+    body:JSON.stringify({
+      tanggal:editTanggal.value,
+      brand:editBrand.value,
+      jenis:editJenis.value,
+      paper:editPaper.value,
+      size:editSize.value,
+      qty:Number(editQty.value)
     })
   });
 
@@ -527,8 +539,38 @@ async function updateData(){
 }
 
 function tutupModal(){
-  document.getElementById("modalEdit").style.display="none";
+  modalEdit.style.display="none";
 }
+
+// ================= EXPORT EXCEL =================
+document.getElementById("btnExcelTable").addEventListener("click",()=>{
+  if(dataTerfilter.length===0) return alert("Tidak ada data");
+
+  const ws=XLSX.utils.json_to_sheet(dataTerfilter);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Data");
+  XLSX.writeFile(wb,"Data_Barang.xlsx");
+});
+
+// ================= WHATSAPP =================
+document.getElementById("btnWATable").addEventListener("click",()=>{
+  if(dataTerfilter.length===0) return alert("Tidak ada data");
+
+  let text="📦 DATA BARANG MASUK\n\n";
+  dataTerfilter.forEach(d=>{
+    text+=`${formatTanggal(d.tanggal)} | ${d.brand} | ${d.jenis} | ${d.qty}\n`;
+  });
+
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,"_blank");
+});
+
+// ================= EVENT FILTER =================
+document.getElementById("filterTanggal").addEventListener("change",applyFilter);
+document.getElementById("filterBrand").addEventListener("input",applyFilter);
+document.getElementById("filterJenis").addEventListener("change",applyFilter);
+document.getElementById("filterPaper").addEventListener("change",applyFilter);
+document.getElementById("filterSize").addEventListener("change",applyFilter);
+document.getElementById("btnResetFilter").addEventListener("click",resetFilter);
 
 // ================= INIT =================
 loadData();
