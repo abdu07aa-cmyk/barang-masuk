@@ -546,10 +546,25 @@ function tutupModal(){
 document.getElementById("btnExcelTable").addEventListener("click",()=>{
   if(dataTerfilter.length===0) return alert("Tidak ada data");
 
-  const ws=XLSX.utils.json_to_sheet(dataTerfilter);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"Data");
-  XLSX.writeFile(wb,"Data_Barang.xlsx");
+  // 🔥 SORT BY TANGGAL ASCENDING
+  const sortedData = [...dataTerfilter].sort((a,b)=>{
+    return new Date(a.tanggal) - new Date(b.tanggal);
+  });
+
+  const ws = XLSX.utils.json_to_sheet(
+    sortedData.map(d=>({
+      Tanggal: formatTanggal(d.tanggal),
+      Brand: d.brand,
+      Jenis: d.jenis,
+      Paper: d.paper,
+      Size: d.size,
+      Qty: d.qty
+    }))
+  );
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Data Barang");
+  XLSX.writeFile(wb, "Data_Barang.xlsx");
 });
 
 // ================= WHATSAPP =================
