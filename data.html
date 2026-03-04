@@ -433,9 +433,14 @@ function tampilkanData(){
     return;
   }
 
-  const start=(currentPage-1)*rowsPerPage;
-  const end=start+rowsPerPage;
-  const pageData=dataTerfilter.slice(start,end);
+ // 🔥 SORT DESCENDING (TERBARU DI ATAS UNTUK TABEL)
+const sortedForView = [...dataTerfilter].sort((a,b)=>{
+  return new Date(b.tanggal) - new Date(a.tanggal);
+});
+
+const start=(currentPage-1)*rowsPerPage;
+const end=start+rowsPerPage;
+const pageData=sortedForView.slice(start,end);
 
   pageData.forEach(d=>{
     dataTable.innerHTML += `
