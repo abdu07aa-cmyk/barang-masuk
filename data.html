@@ -508,9 +508,37 @@ async function hapusData(id) {
   alert("Data berhasil dihapus");
   loadData();
 }  
-    function editData(id){
-  alert("Edit ID: " + id);
-}  
+   async function editData(id) {
+  const qtyBaru = prompt("Masukkan Qty baru:");
+
+  if (qtyBaru === null) return; // kalau pencet batal
+
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        qty: Number(qtyBaru)
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      alert("Gagal update: " + errorText);
+      return;
+    }
+
+    alert("Data berhasil diupdate");
+    loadData();
+
+  } catch (err) {
+    alert("Error: " + err.message);
+  }
+}
 </script>
 </body>
 </html>
