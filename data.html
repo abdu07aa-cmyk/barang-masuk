@@ -382,7 +382,7 @@ async function loadData() {
           <td>${d.qty || '0'}</td>
           <td>
             <button class="btn-small" style="background:#d97706; color:white; border:none;" onclick="alert('Edit untuk ID: ${d.id}')">Edit</button>
-            <button class="btn-small" style="background:#dc2626; color:white; border:none;" onclick="hapusData(${d.id}')">Hapus</button>
+            <button class="btn-small" style="background:#dc2626; color:white; border:none;" onclick="hapusData(${d.id})">Hapus</button>
           </td>
         `;
         dataTable.appendChild(tr);
