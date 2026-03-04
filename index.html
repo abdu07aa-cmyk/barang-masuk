@@ -373,7 +373,7 @@ async function simpan() {
   }
   
   // Validasi setiap baris
-  
+  for (let i = 0; i < baris.length; i++){
     if(!baris[i].jenis) {
       alert("❌ Baris ke-" + (i+1) + " : Jenis belum dipilih");
       return;
@@ -398,7 +398,7 @@ async function simpan() {
       
       console.log(`📤 Mengirim baris ${i+1}:`, item);
       
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk`, {
+const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -406,14 +406,8 @@ async function simpan() {
     'Authorization': `Bearer ${SUPABASE_KEY}`,
     'Prefer': 'return=minimal'
   },
-  body: JSON.stringify(baris) // kirim sekaligus, bukan satu-satu
+  body: JSON.stringify(item)
 });
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(item)
-      });
       
       if (response.ok) {
         berhasil++;
