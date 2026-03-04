@@ -374,17 +374,17 @@ async function loadData() {
         const tr = document.createElement('tr');
         tr.dataset.id = d.id;
         tr.innerHTML = `
-          <td>${formatTanggal(d.tanggal)}</td>
-          <td>${d.brand || '-'}</td>
-          <td>${d.jenis || '-'}</td>
-          <td>${d.paper || '-'}</td>
-          <td>${d.size || '-'}</td>
-          <td>${d.qty || '0'}</td>
-          <td>
-            <button class="btn-small" style="background:#d97706; color:white; border:none;" onclick="alert('Edit untuk ID: ${d.id}')">Edit</button>
-            <button class="btn-small" style="background:#dc2626; color:white; border:none;" onclick="hapusData(${d.id})">Hapus</button>
-          </td>
-        `;
+  <td>${formatTanggal(d.tanggal)}</td>
+  <td>${d.brand || '-'}</td>
+  <td>${d.jenis || '-'}</td>
+  <td>${d.paper || '-'}</td>
+  <td>${d.size || '-'}</td>
+  <td>${d.qty || '0'}</td>
+  <td>
+    <button class="btn-small" style="background:#d97706;color:white;border:none;" onclick="editData(${d.id})">Edit</button>
+    <button class="btn-small" style="background:#dc2626;color:white;border:none;" onclick="hapusData(${d.id})">Hapus</button>
+  </td>
+`;
         dataTable.appendChild(tr);
       });
       
@@ -503,6 +503,9 @@ async function hapusData(id) {
       apikey: SUPABASE_KEY,
       Authorization: `Bearer ${SUPABASE_KEY}`
     }
+    function editData(id){
+  alert("Edit ID: " + id);
+}
   });
 
   alert("Data berhasil dihapus");
