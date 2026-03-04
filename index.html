@@ -398,7 +398,16 @@ async function simpan() {
       
       console.log(`📤 Mengirim baris ${i+1}:`, item);
       
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?apikey=${SUPABASE_KEY}`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Prefer': 'return=minimal'
+  },
+  body: JSON.stringify(baris) // kirim sekaligus, bukan satu-satu
+});
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
