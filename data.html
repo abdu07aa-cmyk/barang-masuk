@@ -375,10 +375,41 @@ async function loadData(){
 
   semuaData = await res.json() || [];
   dataTerfilter = [...semuaData];
+  isiDropdownFilter(); // tambah ini
   currentPage = 1;
   tampilkanData();
 }
+function isiDropdownFilter(){
+  const jenisSet = new Set();
+  const paperSet = new Set();
+  const sizeSet = new Set();
 
+  semuaData.forEach(d=>{
+    if(d.jenis) jenisSet.add(d.jenis);
+    if(d.paper) paperSet.add(d.paper);
+    if(d.size) sizeSet.add(d.size);
+  });
+
+  const jenisSelect = document.getElementById("filterJenis");
+  const paperSelect = document.getElementById("filterPaper");
+  const sizeSelect = document.getElementById("filterSize");
+
+  jenisSelect.innerHTML = '<option value="">Semua</option>';
+  paperSelect.innerHTML = '<option value="">Semua</option>';
+  sizeSelect.innerHTML = '<option value="">Semua</option>';
+
+  jenisSet.forEach(v=>{
+    jenisSelect.innerHTML += `<option value="${v}">${v}</option>`;
+  });
+
+  paperSet.forEach(v=>{
+    paperSelect.innerHTML += `<option value="${v}">${v}</option>`;
+  });
+
+  sizeSet.forEach(v=>{
+    sizeSelect.innerHTML += `<option value="${v}">${v}</option>`;
+  });
+}
 // ================= FILTER =================
 function applyFilter(){
   const tgl = document.getElementById("filterTanggal").value;
