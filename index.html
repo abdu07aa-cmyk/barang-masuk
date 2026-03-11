@@ -194,6 +194,22 @@ td select, td input {
   gap: 12px;
   margin-top: 16px;
 }
+
+/* Style untuk highlight baris duplikat */
+.duplicate-row {
+  background-color: #fff3cd !important;
+  border-left: 4px solid #ffc107;
+}
+
+.duplicate-highlight {
+  animation: blink-bg 1s ease-in-out 2;
+}
+
+@keyframes blink-bg {
+  0% { background-color: transparent; }
+  50% { background-color: #ffc107; }
+  100% { background-color: transparent; }
+}
 </style>
 </head>
 <body>
@@ -215,7 +231,7 @@ td select, td input {
       <input type="date" id="tanggal" value="2024-03-01">
     </div>
 
-    <!-- KOLOM NO PO BARU (INPUT MANUAL) -->
+    <!-- KOLOM NO PO -->
     <div class="input-field">
       <label>No. PO</label>
       <input type="text" id="nopo" placeholder="Masukkan nomor PO" value="PO-001">
@@ -248,6 +264,19 @@ td select, td input {
   </div>
 </div>
 
+<!-- Modal untuk menampilkan peringatan duplikat -->
+<div id="duplicateModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; width:90%; max-width:400px; border-radius:20px; padding:25px; text-align:center;">
+    <div style="font-size:3rem; margin-bottom:15px;">⚠️</div>
+    <h3 style="color:#b91c1c; margin-bottom:10px;">Duplikasi Data Terdeteksi!</h3>
+    <p id="duplicateMessage" style="margin-bottom:20px; color:#334155;"></p>
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="lanjutkanSimpan()">Tetap Simpan</button>
+      <button class="btn btn-outline" style="flex:1;" onclick="tutupModal()">Cek Kembali</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ============== KONFIGURASI ==============
 console.log("🚀 Memulai aplikasi input...");
@@ -268,11 +297,16 @@ const size = ["1 1/4","18X6,5","18X8","SINGLE","KS","KSS","KSSS","SKS","3 CONES/
 
 // ============== ELEMEN ==============
 const tanggal = document.getElementById('tanggal');
-const nopo = document.getElementById('nopo'); // Ambil elemen No. PO
+const nopo = document.getElementById('nopo');
 const brand = document.getElementById('brand');
 const inputTable = document.getElementById('inputTable');
 const btnTambah = document.getElementById('btnTambah');
 const btnSimpan = document.getElementById('btnSimpan');
+const duplicateModal = document.getElementById('duplicateModal');
+const duplicateMessage = document.getElementById('duplicateMessage');
+
+// ============== STATE UNTUK MODAL ==============
+let pendingData = null; // Menyimpan data yang akan disimpan jika user memilih "Tetap Simpan"
 
 // ============== FUNGSI TAMBAH BARIS ==============
 function tambahBaris() {
@@ -340,7 +374,49 @@ function tambahBaris() {
   cellAksi.appendChild(btnHapus);
 }
 
-// ============== FUNGSI SIMPAN ==============
+// ============== FUNGSI CEK DUPLIKAT ==============
+function cekDuplikat(baris) {
+  const map = new Map();
+  const duplikatIndices = [];
+
+  baris.forEach((item, index) => {
+    // Buat key unik dari field yang relevan (Jenis, Paper, Size)
+    const key = `${item.jenis}|${item.paper}|${item.size}`;
+    
+    if (map.has(key)) {
+      // Jika sudah ada, catat index duplikat
+      if (!duplikatIndices.includes(map.get(key))) {
+        duplikatIndices.push(map.get(key));
+      }
+      duplikatIndices.push(index);
+    } else {
+      map.set(key, index);
+    }
+  });
+
+  return duplikatIndices;
+}
+
+// ============== FUNGSI HIGHLIGHT BARIS DUPLIKAT ==============
+function highlightDuplicateRows(indices) {
+  // Hapus highlight sebelumnya
+  document.querySelectorAll('#inputTable tr').forEach(row => {
+    if (row.rowIndex > 0) { // Lewati header
+      row.classList.remove('duplicate-row', 'duplicate-highlight');
+    }
+  });
+
+  // Highlight baris duplikat
+  indices.forEach(idx => {
+    // +1 karena row index 0 adalah header
+    const row = inputTable.rows[idx + 1];
+    if (row) {
+      row.classList.add('duplicate-row', 'duplicate-highlight');
+    }
+  });
+}
+
+// ============== FUNGSI SIMPAN DENGAN DETEKSI DUPLIKAT ==============
 async function simpan() {
   console.log("🔵 TOMBOL SIMPAN DI KLIK!");
   
@@ -349,12 +425,6 @@ async function simpan() {
     alert("❌ Tanggal harus diisi");
     return;
   }
-
-  // Validasi No. PO (tidak wajib diisi, tapi jika ingin wajib, hapus komentar)
-  // if(!nopo.value.trim()) {
-  //   alert("❌ No. PO harus diisi");
-  //   return;
-  // }
   
   if(!brand.value) {
     alert("❌ Brand harus diisi");
@@ -368,9 +438,23 @@ async function simpan() {
     const selects = row.querySelectorAll('select');
     const input = row.querySelector('input[type="number"]');
     
+    // Validasi setiap baris
+    if(!selects[0].value) {
+      alert("❌ Baris ke-" + i + " : Jenis belum dipilih");
+      return;
+    }
+    if(!selects[1].value) {
+      alert("❌ Baris ke-" + i + " : Paper belum dipilih");
+      return;
+    }
+    if(!selects[2].value) {
+      alert("❌ Baris ke-" + i + " : Size belum dipilih");
+      return;
+    }
+    
     baris.push({
       tanggal: tanggal.value,
-      nopo: nopo.value, // Menyimpan No. PO
+      nopo: nopo.value,
       brand: brand.value,
       jenis: selects[0].value,
       paper: selects[1].value,
@@ -386,23 +470,41 @@ async function simpan() {
     return;
   }
   
-  // Validasi setiap baris
-  for (let i = 0; i < baris.length; i++){
-    if(!baris[i].jenis) {
-      alert("❌ Baris ke-" + (i+1) + " : Jenis belum dipilih");
-      return;
-    }
-    if(!baris[i].paper) {
-      alert("❌ Baris ke-" + (i+1) + " : Paper belum dipilih");
-      return;
-    }
-    if(!baris[i].size) {
-      alert("❌ Baris ke-" + (i+1) + " : Size belum dipilih");
-      return;
-    }
+  // ===== CEK DUPLIKAT =====
+  const duplikatIndices = cekDuplikat(baris);
+
+  if (duplikatIndices.length > 0) {
+    // Hitung jumlah grup duplikat
+    const uniqueKeys = new Set();
+    duplikatIndices.forEach(idx => {
+      const item = baris[idx];
+      const key = `${item.jenis}|${item.paper}|${item.size}`;
+      uniqueKeys.add(key);
+    });
+
+    const jumlahGrup = uniqueKeys.size;
+    const jumlahBaris = duplikatIndices.length;
+
+    // Tampilkan pesan di modal
+    duplicateMessage.innerHTML = `Ditemukan <strong>${jumlahBaris} baris</strong> dengan data Jenis, Paper, Size yang sama dalam <strong>${jumlahGrup} grup</strong>.<br><br>Baris yang sama: ${duplikatIndices.map(i => i+1).join(', ')}`;
+    
+    // Highlight baris duplikat
+    highlightDuplicateRows(duplikatIndices);
+
+    // Simpan data untuk digunakan jika user memilih "Tetap Simpan"
+    pendingData = baris;
+
+    // Tampilkan modal
+    duplicateModal.style.display = 'flex';
+    return;
   }
   
-  // ===== KIRIM KE SUPABASE =====
+  // ===== KIRIM KE SUPABASE (JIKA TIDAK ADA DUPLIKAT) =====
+  await prosesSimpan(baris);
+}
+
+// ============== FUNGSI PROSES SIMPAN KE SUPABASE ==============
+async function prosesSimpan(baris) {
   try {
     let berhasil = 0;
     let gagal = 0;
@@ -412,16 +514,16 @@ async function simpan() {
       
       console.log(`📤 Mengirim baris ${i+1}:`, item);
       
-const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'apikey': SUPABASE_KEY,
-    'Authorization': `Bearer ${SUPABASE_KEY}`,
-    'Prefer': 'return=minimal'
-  },
-  body: JSON.stringify(item)
-});
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(item)
+      });
       
       if (response.ok) {
         berhasil++;
@@ -438,14 +540,14 @@ const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk`, {
       alert(`✅ ${berhasil} data berhasil disimpan!${gagal > 0 ? `\n⚠️ ${gagal} data gagal` : ''}`);
       
       if (gagal === 0) {
-        // Kosongkan tabel (hapus semua baris kecuali header)
+        // Kosongkan tabel
         while(inputTable.rows.length > 1) {
           inputTable.deleteRow(1);
         }
         
-        // Reset input tanggal, No. PO, dan brand
+        // Reset form
         tanggal.value = '';
-        nopo.value = ''; // Reset No. PO
+        nopo.value = '';
         brand.value = '';
         
         // Tambah baris baru
@@ -462,6 +564,26 @@ const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk`, {
     alert("❌ Error: " + err.message);
   }
 }
+
+// ============== FUNGSI UNTUK MODAL ==============
+window.lanjutkanSimpan = async function() {
+  if (pendingData) {
+    duplicateModal.style.display = 'none';
+    await prosesSimpan(pendingData);
+    pendingData = null;
+  }
+};
+
+window.tutupModal = function() {
+  duplicateModal.style.display = 'none';
+  pendingData = null;
+  // Hapus highlight
+  document.querySelectorAll('#inputTable tr').forEach(row => {
+    if (row.rowIndex > 0) {
+      row.classList.remove('duplicate-row', 'duplicate-highlight');
+    }
+  });
+};
 
 // ============== TEST KONEKSI ==============
 async function testKoneksi() {
