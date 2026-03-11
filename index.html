@@ -214,6 +214,12 @@ td select, td input {
       <label>Tanggal</label>
       <input type="date" id="tanggal" value="2024-03-01">
     </div>
+
+    <!-- KOLOM NO PO BARU (INPUT MANUAL) -->
+    <div class="input-field">
+      <label>No. PO</label>
+      <input type="text" id="nopo" placeholder="Masukkan nomor PO" value="PO-001">
+    </div>
     
     <div class="input-field">
       <label>Nama Brand</label>
@@ -262,6 +268,7 @@ const size = ["1 1/4","18X6,5","18X8","SINGLE","KS","KSS","KSSS","SKS","3 CONES/
 
 // ============== ELEMEN ==============
 const tanggal = document.getElementById('tanggal');
+const nopo = document.getElementById('nopo'); // Ambil elemen No. PO
 const brand = document.getElementById('brand');
 const inputTable = document.getElementById('inputTable');
 const btnTambah = document.getElementById('btnTambah');
@@ -342,6 +349,12 @@ async function simpan() {
     alert("❌ Tanggal harus diisi");
     return;
   }
+
+  // Validasi No. PO (tidak wajib diisi, tapi jika ingin wajib, hapus komentar)
+  // if(!nopo.value.trim()) {
+  //   alert("❌ No. PO harus diisi");
+  //   return;
+  // }
   
   if(!brand.value) {
     alert("❌ Brand harus diisi");
@@ -357,6 +370,7 @@ async function simpan() {
     
     baris.push({
       tanggal: tanggal.value,
+      nopo: nopo.value, // Menyimpan No. PO
       brand: brand.value,
       jenis: selects[0].value,
       paper: selects[1].value,
@@ -429,8 +443,9 @@ const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk`, {
           inputTable.deleteRow(1);
         }
         
-        // Reset input tanggal dan brand
+        // Reset input tanggal, No. PO, dan brand
         tanggal.value = '';
+        nopo.value = ''; // Reset No. PO
         brand.value = '';
         
         // Tambah baris baru
