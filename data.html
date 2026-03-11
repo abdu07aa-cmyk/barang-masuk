@@ -132,7 +132,7 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 720px; /* Lebar ditambah karena ada kolom No. PO */
+  min-width: 720px;
   font-size: 12px;
 }
 
@@ -148,6 +148,12 @@ td {
   padding: 12px 6px;
   border-bottom: 1px solid #e2e8f0;
   color: #1e293b;
+}
+
+/* Style untuk highlight duplikat */
+.duplicate-row {
+  background-color: #fff3cd !important;
+  border-left: 4px solid #ffc107;
 }
 
 .btn {
@@ -240,7 +246,7 @@ td {
           <input type="date" id="filterTanggal">
         </div>
         <div class="input-field">
-          <label>No. PO</label> <!-- FILTER NO. PO BARU -->
+          <label>No. PO</label>
           <input type="text" id="filterPO" placeholder="Cari No. PO...">
         </div>
       </div>
@@ -269,10 +275,10 @@ td {
       
       <div class="filter-row">
         <div class="input-field">
-          <button class="btn btn-outline btn-small" id="btnResetFilter" style="width:100%;">⟲ Reset</button>
+          <button class="btn btn-outline btn-small" id="btnCekDuplikat" style="width:100%;">🔍 Cek Duplikat</button>
         </div>
         <div class="input-field">
-          <!-- Kosong untuk keseimbangan layout -->
+          <button class="btn btn-outline btn-small" id="btnResetFilter" style="width:100%;">⟲ Reset</button>
         </div>
       </div>
     </div>
@@ -282,7 +288,7 @@ td {
         <table id="dataTable">
           <tr>
             <th>Tanggal</th>
-            <th>No. PO</th> <!-- KOLOM NO. PO BARU -->
+            <th>No. PO</th>
             <th>Brand</th>
             <th>Jenis</th>
             <th>Paper</th>
@@ -301,12 +307,12 @@ td {
 
     <div class="stats">
       <span class="total-badge" id="totalData">0 item</span>
-      <span style="color:#64748b; font-size:0.85rem;">Data terfilter akan diekspor</span>
+      <span style="color:#64748b; font-size:0.85rem;" id="duplicateInfo"></span>
     </div>
   </div>
 </div>
 
-<!-- MODAL EDIT (DITAMBAH KOLOM NO. PO) -->
+<!-- MODAL EDIT -->
 <div id="modalEdit" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:999; align-items:center; justify-content:center;">
   <div style="background:white; width:90%; max-width:420px; border-radius:20px; padding:20px;">
     <h3 style="margin-bottom:15px;">✏ Edit Data</h3>
@@ -319,7 +325,7 @@ td {
     </div>
 
     <div class="input-field">
-      <label>No. PO</label> <!-- INPUT NO. PO BARU -->
+      <label>No. PO</label>
       <input type="text" id="editPO">
     </div>
 
@@ -355,6 +361,19 @@ td {
   </div>
 </div>
 
+<!-- MODAL PERINGATAN DUPLIKAT -->
+<div id="duplicateModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; width:90%; max-width:400px; border-radius:20px; padding:25px; text-align:center;">
+    <div style="font-size:3rem; margin-bottom:15px;">⚠️</div>
+    <h3 style="color:#b91c1c; margin-bottom:10px;">Duplikasi Data Terdeteksi!</h3>
+    <p id="duplicateMessage" style="margin-bottom:20px; color:#334155;"></p>
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="lanjutkanUpdate()">Tetap Simpan</button>
+      <button class="btn btn-outline" style="flex:1;" onclick="tutupModalDuplikat()">Kembali</button>
+    </div>
+  </div>
+</div>
+
 <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin-top:15px;">
   <button onclick="prevPage()" class="btn btn-outline btn-small">⬅ Prev</button>
   <span id="pageInfo" style="font-weight:600;"></span>
@@ -366,21 +385,110 @@ td {
 const SUPABASE_URL = "https://dggspzjibisapdaowkkj.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY";
 
+// ================= DATA DROPDOWN (SAMA DENGAN HALAMAN INPUT) =================
+const jenisList = ["BOOKLET","DISPLAY","FILTER WHITE","FILTER BROWN","FILTER PRINTED","DOUBLE TAPE","COVER","PAPER","FILTER 21","FILTER 26",
+  "FILTER 30","FILTER 40","TRAPEZOID","HOLDER S","HOLDER M","HOLDER L","HOLDER 9X9","HOLDER 10X10","LAYER BOX","PLAT","MAGNET",
+  "MIKA","JAR","STICKER JAR","STICKER MIKA","STICKER FILTER","STICKER BULAT BESAR","STICKER BULAT KECIL","TUBE","FILTER GREEN","FILTER BLUE"];
+
+const paperList = ["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","42 LEAVES","50 LEAVES","51 LEAVES","52 LEAVES",
+  "60 LEAVES","70 MM","83 MM","84 MM","98 MM","109 MM","110 MM"];
+
+const sizeList = ["1 1/4","18X6,5","18X8","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PACK","8 CONES/PACK","700 CONES/BOX",
+  "729 CONES/BOX","900 CONES/BOX","50 CONES/JARS","800 CONES/BOX","1000 CONES/BOX"];
+
 // ================= STATE =================
 let semuaData = [];
 let dataTerfilter = [];
 let currentPage = 1;
 const rowsPerPage = 25;
 
+// State untuk edit
+let pendingEditData = null;
+let pendingEditId = null;
+
 // ================= ELEMENT =================
 const dataTable = document.getElementById("dataTable");
 const totalSpan = document.getElementById("totalData");
+const duplicateInfo = document.getElementById("duplicateInfo");
+const duplicateModal = document.getElementById("duplicateModal");
+const duplicateMessage = document.getElementById("duplicateMessage");
 
 // ================= FORMAT =================
 function formatTanggal(tgl){
   if(!tgl) return "";
   const [y,m,d] = tgl.split("-");
   return `${d}/${m}/${y}`;
+}
+
+// ================= FUNGSI MEMBUAT OPTION UNTUK SELECT =================
+function buatOptions(selectedValue, list) {
+  let html = '';
+  list.forEach(item => {
+    const selected = (item === selectedValue) ? 'selected' : '';
+    html += `<option value="${item}" ${selected}>${item}</option>`;
+  });
+  return html;
+}
+
+// ================= CEK DUPLIKAT =================
+function cekDuplikatDiData(excludeId = null) {
+  const map = new Map();
+  const duplikatIndices = [];
+
+  dataTerfilter.forEach((item, index) => {
+    // Skip jika ini adalah data yang sedang diedit
+    if (excludeId && item.id === excludeId) return;
+    
+    const key = `${item.jenis}|${item.paper}|${item.size}`;
+    
+    if (map.has(key)) {
+      if (!duplikatIndices.includes(map.get(key))) {
+        duplikatIndices.push(map.get(key));
+      }
+      duplikatIndices.push(index);
+    } else {
+      map.set(key, index);
+    }
+  });
+
+  return duplikatIndices;
+}
+
+// ================= HIGHLIGHT DUPLIKAT =================
+function highlightDuplikat(indices) {
+  // Hapus highlight sebelumnya
+  document.querySelectorAll('#dataTable tr').forEach(row => {
+    if (row.rowIndex > 0) {
+      row.classList.remove('duplicate-row');
+    }
+  });
+
+  // Hitung start index untuk halaman saat ini
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
+
+  // Highlight baris duplikat yang ada di halaman ini
+  indices.forEach(idx => {
+    if (idx >= start && idx < end) {
+      const rowIndex = idx - start + 1; // +1 untuk header
+      const row = dataTable.rows[rowIndex];
+      if (row) {
+        row.classList.add('duplicate-row');
+      }
+    }
+  });
+
+  // Update info duplikat
+  if (indices.length > 0) {
+    const uniqueGroups = new Set(indices.map(idx => {
+      const item = dataTerfilter[idx];
+      return `${item.jenis}|${item.paper}|${item.size}`;
+    })).size;
+    
+    duplicateInfo.innerHTML = `⚠️ ${indices.length} baris duplikat (${uniqueGroups} grup)`;
+  } else {
+    duplicateInfo.innerHTML = '✅ Tidak ada duplikat';
+  }
 }
 
 // ================= LOAD DATA =================
@@ -397,6 +505,14 @@ async function loadData(){
   isiDropdownFilter();
   currentPage = 1;
   tampilkanData();
+  
+  // Cek duplikat setelah data dimuat
+  const duplikatIndices = cekDuplikatDiData();
+  if (duplikatIndices.length > 0) {
+    highlightDuplikat(duplikatIndices);
+  } else {
+    duplicateInfo.innerHTML = '✅ Tidak ada duplikat';
+  }
 }
 
 function isiDropdownFilter(){
@@ -431,7 +547,7 @@ function isiDropdownFilter(){
   });
 }
 
-// ================= FILTER (DITAMBAH FILTER NO. PO) =================
+// ================= FILTER =================
 function applyFilter(){
   const tgl = document.getElementById("filterTanggal").value;
   const po = document.getElementById("filterPO").value.toLowerCase();
@@ -443,7 +559,7 @@ function applyFilter(){
   dataTerfilter = semuaData.filter(d=>{
     return (
       (!tgl || d.tanggal === tgl) &&
-      (!po || (d.nopo || "").toLowerCase().includes(po)) && // Filter No. PO
+      (!po || (d.nopo || "").toLowerCase().includes(po)) &&
       (!brand || (d.brand||"").toLowerCase().includes(brand)) &&
       (!jenis || d.jenis === jenis) &&
       (!paper || d.paper === paper) &&
@@ -453,11 +569,19 @@ function applyFilter(){
 
   currentPage = 1;
   tampilkanData();
+  
+  // Cek duplikat setelah filter
+  const duplikatIndices = cekDuplikatDiData();
+  if (duplikatIndices.length > 0) {
+    highlightDuplikat(duplikatIndices);
+  } else {
+    duplicateInfo.innerHTML = '✅ Tidak ada duplikat';
+  }
 }
 
 function resetFilter(){
   document.getElementById("filterTanggal").value="";
-  document.getElementById("filterPO").value=""; // Reset No. PO
+  document.getElementById("filterPO").value="";
   document.getElementById("filterBrand").value="";
   document.getElementById("filterJenis").value="";
   document.getElementById("filterPaper").value="";
@@ -465,9 +589,17 @@ function resetFilter(){
   dataTerfilter = [...semuaData];
   currentPage=1;
   tampilkanData();
+  
+  // Cek duplikat setelah reset
+  const duplikatIndices = cekDuplikatDiData();
+  if (duplikatIndices.length > 0) {
+    highlightDuplikat(duplikatIndices);
+  } else {
+    duplicateInfo.innerHTML = '✅ Tidak ada duplikat';
+  }
 }
 
-// ================= TAMPILKAN DATA (DITAMBAH KOLOM NO. PO) =================
+// ================= TAMPILKAN DATA =================
 function tampilkanData(){
   dataTable.innerHTML = `
     <tr>
@@ -489,7 +621,7 @@ function tampilkanData(){
     return;
   }
 
-  // SORT DESCENDING (TERBARU DI ATAS)
+  // SORT DESCENDING
   const sortedForView = [...dataTerfilter].sort((a,b)=>{
     return new Date(b.tanggal) - new Date(a.tanggal);
   });
@@ -531,6 +663,9 @@ function nextPage(){
   if(currentPage<totalPages){
     currentPage++;
     tampilkanData();
+    // Update highlight untuk halaman baru
+    const duplikatIndices = cekDuplikatDiData();
+    highlightDuplikat(duplikatIndices);
   }
 }
 
@@ -538,6 +673,9 @@ function prevPage(){
   if(currentPage>1){
     currentPage--;
     tampilkanData();
+    // Update highlight untuk halaman baru
+    const duplikatIndices = cekDuplikatDiData();
+    highlightDuplikat(duplikatIndices);
   }
 }
 
@@ -556,7 +694,7 @@ async function hapusData(id){
   loadData();
 }
 
-// ================= EDIT (DITAMBAH NO. PO) =================
+// ================= EDIT =================
 async function editData(id){
   const res = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?id=eq.${id}&select=*`,{
     headers:{
@@ -567,52 +705,120 @@ async function editData(id){
 
   const d=(await res.json())[0];
 
-  editId.value=d.id;
-  editTanggal.value=d.tanggal;
-  editPO.value=d.nopo || ""; // Isi No. PO
-  editBrand.value=d.brand;
-  editQty.value=d.qty;
+  editId.value = d.id;
+  editTanggal.value = d.tanggal;
+  editPO.value = d.nopo || "";
+  editBrand.value = d.brand;
+  editQty.value = d.qty;
   
-  // Untuk dropdown, kita isi dengan nilai yang ada
-  editJenis.innerHTML=`<option value="${d.jenis}">${d.jenis}</option>`;
-  editPaper.innerHTML=`<option value="${d.paper}">${d.paper}</option>`;
-  editSize.innerHTML=`<option value="${d.size}">${d.size}</option>`;
+  // Isi dropdown dengan semua opsi (TIDAK HANYA 1 OPTION)
+  editJenis.innerHTML = buatOptions(d.jenis, jenisList);
+  editPaper.innerHTML = buatOptions(d.paper, paperList);
+  editSize.innerHTML = buatOptions(d.size, sizeList);
 
-  modalEdit.style.display="flex";
+  modalEdit.style.display = "flex";
 }
 
+// ================= UPDATE DENGAN CEK DUPLIKAT =================
 async function updateData(){
-  await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?id=eq.${editId.value}`,{
+  const id = editId.value;
+  const newData = {
+    tanggal: editTanggal.value,
+    nopo: editPO.value,
+    brand: editBrand.value,
+    jenis: editJenis.value,
+    paper: editPaper.value,
+    size: editSize.value,
+    qty: Number(editQty.value)
+  };
+
+  // Validasi
+  if (!newData.tanggal || !newData.brand || !newData.jenis || !newData.paper || !newData.size) {
+    alert("❌ Semua field harus diisi!");
+    return;
+  }
+
+  // Cek apakah data baru ini akan menjadi duplikat (kecuali dengan dirinya sendiri)
+  const akanDuplikat = dataTerfilter.some(item => {
+    if (item.id == id) return false; // Abaikan data sendiri
+    return (
+      item.jenis === newData.jenis &&
+      item.paper === newData.paper &&
+      item.size === newData.size
+    );
+  });
+
+  if (akanDuplikat) {
+    // Tampilkan modal peringatan
+    pendingEditData = newData;
+    pendingEditId = id;
+    duplicateMessage.innerHTML = `Data yang Anda edit akan menjadi duplikat dengan data lain.<br><br>Jenis, Paper, Size yang sama sudah ada di database.`;
+    duplicateModal.style.display = 'flex';
+    return;
+  }
+
+  // Jika tidak duplikat, langsung update
+  await prosesUpdate(id, newData);
+}
+
+// ================= PROSES UPDATE =================
+async function prosesUpdate(id, data) {
+  await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?id=eq.${id}`,{
     method:"PATCH",
     headers:{
       apikey:SUPABASE_KEY,
       Authorization:`Bearer ${SUPABASE_KEY}`,
       "Content-Type":"application/json"
     },
-    body:JSON.stringify({
-      tanggal:editTanggal.value,
-      nopo:editPO.value, // Kirim No. PO
-      brand:editBrand.value,
-      jenis:editJenis.value,
-      paper:editPaper.value,
-      size:editSize.value,
-      qty:Number(editQty.value)
-    })
+    body:JSON.stringify(data)
   });
 
   tutupModal();
   loadData();
 }
 
+// ================= FUNGSI MODAL =================
+window.lanjutkanUpdate = async function() {
+  if (pendingEditData && pendingEditId) {
+    duplicateModal.style.display = 'none';
+    await prosesUpdate(pendingEditId, pendingEditData);
+    pendingEditData = null;
+    pendingEditId = null;
+  }
+};
+
+window.tutupModalDuplikat = function() {
+  duplicateModal.style.display = 'none';
+  pendingEditData = null;
+  pendingEditId = null;
+};
+
 function tutupModal(){
-  modalEdit.style.display="none";
+  modalEdit.style.display = "none";
 }
 
-// ================= EXPORT EXCEL (DITAMBAH NO. PO) =================
+// ================= CEK DUPLIKAT MANUAL =================
+document.getElementById("btnCekDuplikat").addEventListener("click", ()=>{
+  const duplikatIndices = cekDuplikatDiData();
+  if (duplikatIndices.length > 0) {
+    highlightDuplikat(duplikatIndices);
+    
+    const uniqueGroups = new Set(duplikatIndices.map(idx => {
+      const item = dataTerfilter[idx];
+      return `${item.jenis}|${item.paper}|${item.size}`;
+    })).size;
+    
+    alert(`⚠️ Ditemukan ${duplikatIndices.length} baris duplikat dalam ${uniqueGroups} grup.\n\nBaris duplikat sudah di-highlight kuning.`);
+  } else {
+    alert('✅ Tidak ada data duplikat.');
+    duplicateInfo.innerHTML = '✅ Tidak ada duplikat';
+  }
+});
+
+// ================= EXPORT EXCEL =================
 document.getElementById("btnExcelTable").addEventListener("click",()=>{
   if(dataTerfilter.length===0) return alert("Tidak ada data");
 
-  // SORT BY TANGGAL ASCENDING
   const sortedData = [...dataTerfilter].sort((a,b)=>{
     return new Date(a.tanggal) - new Date(b.tanggal);
   });
@@ -620,7 +826,7 @@ document.getElementById("btnExcelTable").addEventListener("click",()=>{
   const ws = XLSX.utils.json_to_sheet(
     sortedData.map(d=>({
       Tanggal: formatTanggal(d.tanggal),
-      "No. PO": d.nopo || "-", // Kolom No. PO
+      "No. PO": d.nopo || "-",
       Brand: d.brand,
       Jenis: d.jenis,
       Paper: d.paper,
@@ -634,7 +840,7 @@ document.getElementById("btnExcelTable").addEventListener("click",()=>{
   XLSX.writeFile(wb, "Data_Barang.xlsx");
 });
 
-// ================= WHATSAPP (DITAMBAH NO. PO) =================
+// ================= WHATSAPP =================
 document.getElementById("btnWATable").addEventListener("click",()=>{
   if(dataTerfilter.length===0) return alert("Tidak ada data");
 
@@ -646,9 +852,9 @@ document.getElementById("btnWATable").addEventListener("click",()=>{
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,"_blank");
 });
 
-// ================= EVENT FILTER (TAMBAH FILTER PO) =================
+// ================= EVENT FILTER =================
 document.getElementById("filterTanggal").addEventListener("change",applyFilter);
-document.getElementById("filterPO").addEventListener("input",applyFilter); // Event baru
+document.getElementById("filterPO").addEventListener("input",applyFilter);
 document.getElementById("filterBrand").addEventListener("input",applyFilter);
 document.getElementById("filterJenis").addEventListener("change",applyFilter);
 document.getElementById("filterPaper").addEventListener("change",applyFilter);
