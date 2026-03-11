@@ -132,7 +132,7 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 620px;
+  min-width: 720px; /* Lebar ditambah karena ada kolom No. PO */
   font-size: 12px;
 }
 
@@ -240,29 +240,39 @@ td {
           <input type="date" id="filterTanggal">
         </div>
         <div class="input-field">
+          <label>No. PO</label> <!-- FILTER NO. PO BARU -->
+          <input type="text" id="filterPO" placeholder="Cari No. PO...">
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <div class="input-field">
           <label>Brand</label>
           <input type="text" id="filterBrand" placeholder="Cari brand...">
         </div>
-      </div>
-      
-      <div class="filter-row">
         <div class="input-field">
           <label>Jenis</label>
           <select id="filterJenis"><option value="">Semua</option></select>
         </div>
+      </div>
+      
+      <div class="filter-row">
         <div class="input-field">
           <label>Paper</label>
           <select id="filterPaper"><option value="">Semua</option></select>
+        </div>
+        <div class="input-field">
+          <label>Size</label>
+          <select id="filterSize"><option value="">Semua</option></select>
         </div>
       </div>
       
       <div class="filter-row">
         <div class="input-field">
-          <label>Size</label>
-          <select id="filterSize"><option value="">Semua</option></select>
+          <button class="btn btn-outline btn-small" id="btnResetFilter" style="width:100%;">⟲ Reset</button>
         </div>
         <div class="input-field">
-          <button class="btn btn-outline btn-small" id="btnResetFilter" style="width:100%;">⟲ Reset</button>
+          <!-- Kosong untuk keseimbangan layout -->
         </div>
       </div>
     </div>
@@ -272,6 +282,7 @@ td {
         <table id="dataTable">
           <tr>
             <th>Tanggal</th>
+            <th>No. PO</th> <!-- KOLOM NO. PO BARU -->
             <th>Brand</th>
             <th>Jenis</th>
             <th>Paper</th>
@@ -294,7 +305,8 @@ td {
     </div>
   </div>
 </div>
-<!-- TAMBAHKAN INI tepat sebelum </body> (di atas <script>) -->
+
+<!-- MODAL EDIT (DITAMBAH KOLOM NO. PO) -->
 <div id="modalEdit" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:999; align-items:center; justify-content:center;">
   <div style="background:white; width:90%; max-width:420px; border-radius:20px; padding:20px;">
     <h3 style="margin-bottom:15px;">✏ Edit Data</h3>
@@ -304,6 +316,11 @@ td {
     <div class="input-field">
       <label>Tanggal</label>
       <input type="date" id="editTanggal">
+    </div>
+
+    <div class="input-field">
+      <label>No. PO</label> <!-- INPUT NO. PO BARU -->
+      <input type="text" id="editPO">
     </div>
 
     <div class="input-field">
@@ -337,11 +354,13 @@ td {
     </div>
   </div>
 </div>
-  <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin-top:15px;">
+
+<div style="display:flex; justify-content:center; align-items:center; gap:15px; margin-top:15px;">
   <button onclick="prevPage()" class="btn btn-outline btn-small">⬅ Prev</button>
   <span id="pageInfo" style="font-weight:600;"></span>
   <button onclick="nextPage()" class="btn btn-outline btn-small">Next ➡</button>
 </div>
+
 <script>
 // ================= KONFIGURASI =================
 const SUPABASE_URL = "https://dggspzjibisapdaowkkj.supabase.co";
@@ -375,10 +394,11 @@ async function loadData(){
 
   semuaData = await res.json() || [];
   dataTerfilter = [...semuaData];
-  isiDropdownFilter(); // tambah ini
+  isiDropdownFilter();
   currentPage = 1;
   tampilkanData();
 }
+
 function isiDropdownFilter(){
   const jenisSet = new Set();
   const paperSet = new Set();
@@ -410,9 +430,11 @@ function isiDropdownFilter(){
     sizeSelect.innerHTML += `<option value="${v}">${v}</option>`;
   });
 }
-// ================= FILTER =================
+
+// ================= FILTER (DITAMBAH FILTER NO. PO) =================
 function applyFilter(){
   const tgl = document.getElementById("filterTanggal").value;
+  const po = document.getElementById("filterPO").value.toLowerCase();
   const brand = document.getElementById("filterBrand").value.toLowerCase();
   const jenis = document.getElementById("filterJenis").value;
   const paper = document.getElementById("filterPaper").value;
@@ -421,6 +443,7 @@ function applyFilter(){
   dataTerfilter = semuaData.filter(d=>{
     return (
       (!tgl || d.tanggal === tgl) &&
+      (!po || (d.nopo || "").toLowerCase().includes(po)) && // Filter No. PO
       (!brand || (d.brand||"").toLowerCase().includes(brand)) &&
       (!jenis || d.jenis === jenis) &&
       (!paper || d.paper === paper) &&
@@ -434,6 +457,7 @@ function applyFilter(){
 
 function resetFilter(){
   document.getElementById("filterTanggal").value="";
+  document.getElementById("filterPO").value=""; // Reset No. PO
   document.getElementById("filterBrand").value="";
   document.getElementById("filterJenis").value="";
   document.getElementById("filterPaper").value="";
@@ -443,11 +467,12 @@ function resetFilter(){
   tampilkanData();
 }
 
-// ================= TAMPILKAN DATA =================
+// ================= TAMPILKAN DATA (DITAMBAH KOLOM NO. PO) =================
 function tampilkanData(){
   dataTable.innerHTML = `
     <tr>
       <th>Tanggal</th>
+      <th>No. PO</th>
       <th>Brand</th>
       <th>Jenis</th>
       <th>Paper</th>
@@ -458,25 +483,26 @@ function tampilkanData(){
   `;
 
   if(dataTerfilter.length === 0){
-    dataTable.innerHTML += `<tr><td colspan="7" style="text-align:center;padding:40px;">📭 Tidak ada data</td></tr>`;
+    dataTable.innerHTML += `<tr><td colspan="8" style="text-align:center;padding:40px;">📭 Tidak ada data</td></tr>`;
     totalSpan.textContent="0 item";
     updatePagination();
     return;
   }
 
- // 🔥 SORT DESCENDING (TERBARU DI ATAS UNTUK TABEL)
-const sortedForView = [...dataTerfilter].sort((a,b)=>{
-  return new Date(b.tanggal) - new Date(a.tanggal);
-});
+  // SORT DESCENDING (TERBARU DI ATAS)
+  const sortedForView = [...dataTerfilter].sort((a,b)=>{
+    return new Date(b.tanggal) - new Date(a.tanggal);
+  });
 
-const start=(currentPage-1)*rowsPerPage;
-const end=start+rowsPerPage;
-const pageData=sortedForView.slice(start,end);
+  const start=(currentPage-1)*rowsPerPage;
+  const end=start+rowsPerPage;
+  const pageData=sortedForView.slice(start,end);
 
   pageData.forEach(d=>{
     dataTable.innerHTML += `
       <tr>
         <td>${formatTanggal(d.tanggal)}</td>
+        <td>${d.nopo || "-"}</td>
         <td>${d.brand||"-"}</td>
         <td>${d.jenis||"-"}</td>
         <td>${d.paper||"-"}</td>
@@ -530,7 +556,7 @@ async function hapusData(id){
   loadData();
 }
 
-// ================= EDIT =================
+// ================= EDIT (DITAMBAH NO. PO) =================
 async function editData(id){
   const res = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?id=eq.${id}&select=*`,{
     headers:{
@@ -543,11 +569,14 @@ async function editData(id){
 
   editId.value=d.id;
   editTanggal.value=d.tanggal;
+  editPO.value=d.nopo || ""; // Isi No. PO
   editBrand.value=d.brand;
   editQty.value=d.qty;
-  editJenis.innerHTML=`<option>${d.jenis}</option>`;
-  editPaper.innerHTML=`<option>${d.paper}</option>`;
-  editSize.innerHTML=`<option>${d.size}</option>`;
+  
+  // Untuk dropdown, kita isi dengan nilai yang ada
+  editJenis.innerHTML=`<option value="${d.jenis}">${d.jenis}</option>`;
+  editPaper.innerHTML=`<option value="${d.paper}">${d.paper}</option>`;
+  editSize.innerHTML=`<option value="${d.size}">${d.size}</option>`;
 
   modalEdit.style.display="flex";
 }
@@ -562,6 +591,7 @@ async function updateData(){
     },
     body:JSON.stringify({
       tanggal:editTanggal.value,
+      nopo:editPO.value, // Kirim No. PO
       brand:editBrand.value,
       jenis:editJenis.value,
       paper:editPaper.value,
@@ -578,11 +608,11 @@ function tutupModal(){
   modalEdit.style.display="none";
 }
 
-// ================= EXPORT EXCEL =================
+// ================= EXPORT EXCEL (DITAMBAH NO. PO) =================
 document.getElementById("btnExcelTable").addEventListener("click",()=>{
   if(dataTerfilter.length===0) return alert("Tidak ada data");
 
-  // 🔥 SORT BY TANGGAL ASCENDING
+  // SORT BY TANGGAL ASCENDING
   const sortedData = [...dataTerfilter].sort((a,b)=>{
     return new Date(a.tanggal) - new Date(b.tanggal);
   });
@@ -590,6 +620,7 @@ document.getElementById("btnExcelTable").addEventListener("click",()=>{
   const ws = XLSX.utils.json_to_sheet(
     sortedData.map(d=>({
       Tanggal: formatTanggal(d.tanggal),
+      "No. PO": d.nopo || "-", // Kolom No. PO
       Brand: d.brand,
       Jenis: d.jenis,
       Paper: d.paper,
@@ -603,20 +634,21 @@ document.getElementById("btnExcelTable").addEventListener("click",()=>{
   XLSX.writeFile(wb, "Data_Barang.xlsx");
 });
 
-// ================= WHATSAPP =================
+// ================= WHATSAPP (DITAMBAH NO. PO) =================
 document.getElementById("btnWATable").addEventListener("click",()=>{
   if(dataTerfilter.length===0) return alert("Tidak ada data");
 
-  let text="📦 DATA BARANG MASUK\n\n";
+  let text="📦 *DATA BARANG MASUK*\n\n";
   dataTerfilter.forEach(d=>{
-    text+=`${formatTanggal(d.tanggal)} | ${d.brand} | ${d.jenis} | ${d.qty}\n`;
+    text+=`📅 ${formatTanggal(d.tanggal)} | 📋 PO: ${d.nopo || "-"} | 🏷️ ${d.brand} | 📦 ${d.jenis} | 🔢 ${d.qty}\n`;
   });
 
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,"_blank");
 });
 
-// ================= EVENT FILTER =================
+// ================= EVENT FILTER (TAMBAH FILTER PO) =================
 document.getElementById("filterTanggal").addEventListener("change",applyFilter);
+document.getElementById("filterPO").addEventListener("input",applyFilter); // Event baru
 document.getElementById("filterBrand").addEventListener("input",applyFilter);
 document.getElementById("filterJenis").addEventListener("change",applyFilter);
 document.getElementById("filterPaper").addEventListener("change",applyFilter);
