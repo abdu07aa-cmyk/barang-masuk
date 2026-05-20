@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Data - Gudang Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f0f2f5; }
+        .container { max-width: 500px; margin: auto; }
+        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; }
+        button { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+        .btn-stok { background: #10b981; color: white; }
+        .btn-masuk { background: #3b82f6; color: white; }
+        .btn-keluar { background: #f59e0b; color: white; }
+        .btn-pi { background: #8b5cf6; color: white; }
+        .back { background: #64748b; color: white; }
+        h2 { text-align: center; margin-bottom: 20px; }
+        .status { padding: 10px; margin-top: 10px; border-radius: 8px; text-align: center; }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+        .loading { text-align: center; padding: 20px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2>📎 Export Data ke Excel</h2>
+            <div id="status" class="loading">⏳ Mengecek koneksi...</div>
+            <button class="btn-stok" onclick="exportStok()">📊 Export Laporan Stok</button>
+            <button class="btn-masuk" onclick="exportMasuk()">📥 Export Barang Masuk</button>
+            <button class="btn-keluar" onclick="exportKeluar()">📤 Export Barang Keluar</button>
+            <button class="btn-pi" onclick="exportPi()">📝 Export Data PI</button>
+            <button class="back" onclick="window.location.href='dashboard.html'">⬅ Kembali</button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://txvgclavcmhyxamxgvsi.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4dmdjbGF2Y21oeXhhbXhndnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzEyMDgsImV4cCI6MjA5MzEwNzIwOH0.oq3lH7_mRR-TIUV0sW8EtbYqS2SjmKOzneSrV3n45mY';
+        
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        async function cekKoneksi() {
+            try {
+                const { data: { session } } = await sb.auth.getSession();
+                if (session) {
+                    document.getElementById('status').innerHTML = '<div class="status success">✅ Terhubung ke Supabase<br>User: ' + session.user.email + '</div>';
+                } else {
+                    document.getElementById('status').innerHTML = '<div class="status error">❌ Belum login! Silakan login dulu</div>';
+                }
+            } catch(e) {
+                document.getElementById('status').innerHTML = '<div class="status error">❌ Error: ' + e.message + '</div>';
+            }
+        }
+        
+        cekKoneksi();
+        
+        // ========== FUNGSI EXPORT MENGGUNAKAN AOA_TO_SHEET (seperti project sukses) ==========
+        function downloadExcel(dataArray, filename, headers) {
+            if (!dataArray || dataArray.length === 0) {
+                alert('Tidak ada data untuk diexport!');
+                return;
+            }
+            
+            // Format data ke array of array (seperti project sukses)
+            const excelData = [headers];
+            for (let i = 0; i < dataArray.length; i++) {
+                excelData.push(dataArray[i]);
+            }
+            
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            
+            // Set lebar kolom
+            ws['!cols'] = headers.map(() => ({wch: 15}));
+            
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Laporan");
+            
+            const now = new Date();
+            const fileName = `${filename}_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            alert(`✓ Download ${fileName} selesai!`);
+        }
+        
+        async function exportStok() {
+            alert('Mengambil data stok...');
+            
+            const { data: headers } = await sb.from('pi_header').select('*');
+            const { data: details } = await sb.from('pi_detail').select('*');
+            const { data: masuk } = await sb.from('barang_masuk').select('*');
+            const { data: keluar } = await sb.from('barang_keluar').select('*');
+            
+            const headersExcel = ['No PI', 'Brand', 'Jenis', 'Paper', 'Size', 'Qty PI', 'Total Masuk', 'Total Keluar', 'Stok Akhir'];
+            const dataRows = [];
+            
+            for (const detail of details) {
+                const header = headers?.find(h => h.id === detail.pi_id);
+                let totalMasuk = 0, totalKeluar = 0;
+                if (masuk) masuk.forEach(m => { if (m.detail_id === detail.id) totalMasuk += m.qty; });
+                if (keluar) keluar.forEach(k => { if (k.detail_id === detail.id) totalKeluar += k.qty; });
+                
+                dataRows.push([
+                    header?.no_pi || '-',
+                    detail.brand,
+                    detail.jenis,
+                    detail.paper || '-',
+                    detail.size || '-',
+                    detail.qty_pi,
+                    totalMasuk,
+                    totalKeluar,
+                    totalMasuk - totalKeluar
+                ]);
+            }
+            
+            if (dataRows.length === 0) {
+                alert('Tidak ada data stok');
+                return;
+            }
+            
+            downloadExcel(dataRows, 'Laporan_Stok', headersExcel);
+        }
+        
+        async function exportMasuk() {
+            alert('Mengambil data barang masuk...');
+            
+            const { data: masuk } = await sb.from('barang_masuk')
+                .select('*, pi_detail(*, pi_header(*))')
+                .order('tanggal', { ascending: false });
+            
+            const headersExcel = ['Tanggal', 'No PI', 'Brand', 'Jenis', 'Paper', 'Size', 'Qty Masuk', 'Keterangan'];
+            const dataRows = [];
+            
+            if (masuk) {
+                for (const m of masuk) {
+                    dataRows.push([
+                        m.tanggal,
+                        m.pi_detail?.pi_header?.no_pi || '-',
+                        m.pi_detail?.brand || '-',
+                        m.pi_detail?.jenis || '-',
+                        m.pi_detail?.paper || '-',
+                        m.pi_detail?.size || '-',
+                        m.qty,
+                        m.keterangan || '-'
+                    ]);
+                }
+            }
+            
+            if (dataRows.length === 0) {
+                alert('Tidak ada data barang masuk');
+                return;
+            }
+            
+            downloadExcel(dataRows, 'Barang_Masuk', headersExcel);
+        }
+        
+        async function exportKeluar() {
+            alert('Mengambil data barang keluar...');
+            
+            const { data: keluar } = await sb.from('barang_keluar')
+                .select('*, pi_detail(*, pi_header(*))')
+                .order('tanggal', { ascending: false });
+            
+            const headersExcel = ['Tanggal', 'No PI', 'Brand', 'Jenis', 'Paper', 'Size', 'Qty Keluar', 'Keterangan'];
+            const dataRows = [];
+            
+            if (keluar) {
+                for (const k of keluar) {
+                    dataRows.push([
+                        k.tanggal,
+                        k.pi_detail?.pi_header?.no_pi || '-',
+                        k.pi_detail?.brand || '-',
+                        k.pi_detail?.jenis || '-',
+                        k.pi_detail?.paper || '-',
+                        k.pi_detail?.size || '-',
+                        k.qty,
+                        k.keterangan || '-'
+                    ]);
+                }
+            }
+            
+            if (dataRows.length === 0) {
+                alert('Tidak ada data barang keluar');
+                return;
+            }
+            
+            downloadExcel(dataRows, 'Barang_Keluar', headersExcel);
+        }
+        
+        async function exportPi() {
+            alert('Mengambil data PI...');
+            
+            const { data: headers } = await sb.from('pi_header').select('*').order('created_at', { ascending: false });
+            const { data: details } = await sb.from('pi_detail').select('*');
+            
+            const headersExcel = ['No PI', 'Tanggal PI', 'Brand', 'Jenis', 'Paper', 'Size', 'Qty'];
+            const dataRows = [];
+            
+            for (const header of headers) {
+                const detailItems = details.filter(d => d.pi_id === header.id);
+                for (const item of detailItems) {
+                    dataRows.push([
+                        header.no_pi,
+                        header.tanggal,
+                        item.brand,
+                        item.jenis,
+                        item.paper || '-',
+                        item.size || '-',
+                        item.qty_pi
+                    ]);
+                }
+            }
+            
+            if (dataRows.length === 0) {
+                alert('Tidak ada data PI');
+                return;
+            }
+            
+            downloadExcel(dataRows, 'Data_PI', headersExcel);
+        }
+    </script>
+</body>
+</html>
