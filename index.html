@@ -1,624 +1,233 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-<title>Input Barang Masuk</title>
-<style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Dashboard - Gudang Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; overflow-x: hidden; }
 
-body {
-  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-  background: #f8fafc;
-  padding: 12px;
-  min-height: 100vh;
-}
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: #1e293b;
+            color: white;
+            transition: 0.3s;
+            z-index: 1000;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+        }
+        .sidebar.open { left: 0; }
+        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid #334155; background: #0f172a; }
+        .sidebar-header h3 { font-size: 18px; }
+        .sidebar-header p { font-size: 12px; color: #94a3b8; margin-top: 5px; }
+        .sidebar-menu { padding: 10px 0; }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #cbd5e1;
+            cursor: pointer;
+        }
+        .menu-item:hover { background: #334155; color: white; }
+        .menu-item.active { background: #3b82f6; color: white; }
+        .menu-item .icon { width: 30px; font-size: 20px; }
+        .menu-item .text { font-size: 14px; }
+        .menu-divider { height: 1px; background: #334155; margin: 10px 20px; }
 
-.container {
-  max-width: 480px;
-  margin: 0 auto;
-}
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+        .overlay.show { display: block; }
 
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  background: white;
-  padding: 16px;
-  border-radius: 30px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
+        .header {
+            background: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+        .logo { font-size: 18px; font-weight: bold; color: #1e293b; }
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
 
-.app-header h1 {
-  font-size: 1.5rem;
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+        .card { background: white; border-radius: 12px; padding: 18px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #1e293b; }
+        .stats { display: flex; gap: 12px; margin-bottom: 20px; }
+        .stat-card { flex: 1; background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 28px; font-weight: bold; color: #3b82f6; }
+        .stat-label { font-size: 12px; color: #64748b; margin-top: 5px; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+        th { color: #64748b; font-weight: 500; }
+        .loading { text-align: center; padding: 20px; color: #64748b; }
 
-.nav-link {
-  background: #3b82f6;
-  color: white;
-  padding: 10px 18px;
-  border-radius: 40px;
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.card {
-  background: white;
-  border-radius: 28px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 10px 25px -8px rgba(0,0,0,0.1);
-  border: 1px solid #e2e8f0;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.card-header h3 {
-  font-size: 1.2rem;
-  color: #0f172a;
-}
-
-.input-field {
-  margin-bottom: 16px;
-}
-
-.input-field label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: 6px;
-  display: block;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.input-field input {
-  width: 100%;
-  padding: 16px;
-  border-radius: 20px;
-  border: 1.5px solid #e2e8f0;
-  font-size: 15px;
-  background: #f8fafc;
-  outline: none;
-}
-
-.input-field input:focus {
-  border-color: #2563eb;
-  background: white;
-  box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
-}
-
-.table-wrapper {
-  background: #f8fafc;
-  border-radius: 20px;
-  border: 1.5px solid #e2e8f0;
-  overflow: hidden;
-  margin: 16px 0;
-}
-
-.table-responsive {
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 500px;
-  font-size: 13px;
-}
-
-th {
-  background: #f1f4f9;
-  color: #334155;
-  font-weight: 600;
-  padding: 14px 8px;
-  white-space: nowrap;
-}
-
-td {
-  padding: 12px 8px;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-td select, td input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 16px;
-  border: 1.5px solid #e2e8f0;
-  background: white;
-}
-
-.btn {
-  padding: 16px;
-  border-radius: 40px;
-  font-weight: 600;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  transition: all 0.2s;
-}
-
-.btn:active {
-  transform: scale(0.98);
-}
-
-.btn-primary {
-  background: #2563eb;
-  color: white;
-}
-
-.btn-success {
-  background: #16a34a;
-  color: white;
-}
-
-.btn-outline {
-  background: white;
-  border: 1.5px solid #2563eb;
-  color: #2563eb;
-}
-
-.btn-small {
-  padding: 8px 16px;
-  font-size: 12px;
-  border-radius: 30px;
-  width: auto;
-  cursor: pointer;
-}
-
-.action-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-/* Style untuk highlight baris duplikat */
-.duplicate-row {
-  background-color: #fff3cd !important;
-  border-left: 4px solid #ffc107;
-}
-
-.duplicate-highlight {
-  animation: blink-bg 1s ease-in-out 2;
-}
-
-@keyframes blink-bg {
-  0% { background-color: transparent; }
-  50% { background-color: #ffc107; }
-  100% { background-color: transparent; }
-}
-</style>
+        @media (max-width: 480px) {
+            .stat-value { font-size: 22px; }
+            .card-title { font-size: 14px; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="app-header">
-    <h1>📦 StockMaster</h1>
-    <a href="data.html" class="nav-link">📋 Lihat Data</a>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <span style="font-size: 1.8rem;">📥</span>
-      <h3>Input Barang Masuk</h3>
-    </div>
-    
-    <div class="input-field">
-      <label>Tanggal</label>
-      <input type="date" id="tanggal" value="2024-03-01">
-    </div>
-
-    <!-- KOLOM NO PO -->
-    <div class="input-field">
-      <label>No. PO</label>
-      <input type="text" id="nopo" placeholder="Masukkan nomor PO" value="PO-001">
-    </div>
-    
-    <div class="input-field">
-      <label>Nama Brand</label>
-      <input type="text" id="brand" placeholder="Contoh: BRAND ABC" value="TEST BRAND">
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>📦 GUDANG PRO</h3>
+            <p>Manajemen Inventory</p>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item active" data-menu="dashboard"><span class="icon">📊</span><span class="text">Dashboard</span></div>
+            <div class="menu-item" data-menu="pi-input"><span class="icon">📝</span><span class="text">Input PI</span></div>
+            <div class="menu-item" data-menu="stock-in"><span class="icon">📥</span><span class="text">Barang Masuk</span></div>
+            <div class="menu-item" data-menu="stock-out"><span class="icon">📤</span><span class="text">Barang Keluar</span></div>
+            <div class="menu-item" data-menu="stock-report"><span class="icon">📋</span><span class="text">Stok Gudang</span></div>
+            <div class="menu-divider"></div>
+            <div class="menu-item" data-menu="master"><span class="icon">⚙️</span><span class="text">Master Barang</span></div>
+            <div class="menu-item" data-menu="supplier"><span class="icon">🏢</span><span class="text">Supplier</span></div>
+            <div class="menu-item" data-menu="po"><span class="icon">📑</span><span class="text">Purchase Order</span></div>
+            <div class="menu-divider"></div>
+            <div class="menu-item" data-menu="export"><span class="icon">📎</span><span class="text">Export Data</span></div>
+            <div class="menu-divider"></div>
+            <div class="menu-item" id="logoutMenu"><span class="icon">🚪</span><span class="text">Logout</span></div>
+        </div>
     </div>
 
-    <div class="table-wrapper">
-      <div class="table-responsive">
-        <table id="inputTable">
-          <tr>
-            <th>Jenis</th>
-            <th>Paper</th>
-            <th>Size</th>
-            <th>Qty</th>
-            <th>Aksi</th>
-          </tr>
-          <!-- Baris akan ditambah lewat javascript -->
-        </table>
-      </div>
+    <div class="overlay" id="overlay"></div>
+
+    <div class="header">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="logo">📦 GUDANG PRO</div>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
     </div>
 
-    <div class="action-grid">
-      <button id="btnTambah" class="btn btn-outline">+ Tambah Baris</button>
-      <button id="btnSimpan" class="btn btn-success">💾 Simpan</button>
-    </div>
-  </div>
-</div>
+    <div class="container" id="mainContent"><div class="loading">Loading...</div></div>
 
-<!-- Modal untuk menampilkan peringatan duplikat -->
-<div id="duplicateModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-  <div style="background:white; width:90%; max-width:400px; border-radius:20px; padding:25px; text-align:center;">
-    <div style="font-size:3rem; margin-bottom:15px;">⚠️</div>
-    <h3 style="color:#b91c1c; margin-bottom:10px;">Duplikasi Data Terdeteksi!</h3>
-    <p id="duplicateMessage" style="margin-bottom:20px; color:#334155;"></p>
-    <div style="display:flex; gap:10px;">
-      <button class="btn btn-primary" style="flex:1;" onclick="lanjutkanSimpan()">Tetap Simpan</button>
-      <button class="btn btn-outline" style="flex:1;" onclick="tutupModal()">Cek Kembali</button>
-    </div>
-  </div>
-</div>
+    <script>
+        function goToMenu(menu) {
+            if (menu === 'dashboard') window.location.href = 'dashboard.html';
+            else if (menu === 'pi-input') window.location.href = 'pi-input.html';
+            else if (menu === 'stock-in') window.location.href = 'stock-in.html';
+            else if (menu === 'stock-out') window.location.href = 'stock-out.html';
+            else if (menu === 'stock-report') window.location.href = 'stock-report.html';
+            else if (menu === 'export') window.location.href = 'export-final3.html';
+            else alert('Menu ' + menu + ' akan segera tersedia');
+        }
 
-<script>
-// ============== KONFIGURASI ==============
-console.log("🚀 Memulai aplikasi input...");
+        async function logout() {
+            await sb.auth.signOut();
+            window.location.href = 'login.html';
+        }
 
-const SUPABASE_URL = "https://dggspzjibisapdaowkkj.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZ3NwemppYmlzYXBkYW93a2tqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjMxNzksImV4cCI6MjA4MzQzOTE3OX0.DtDb10SzKfwJg3bbVq53nG9RIXbZYtitXn67ZtdBMFY";
+        function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+        function toggleSidebar() { if (document.getElementById('sidebar').classList.contains('open')) closeSidebar(); else openSidebar(); }
 
-// ============== DATA DROPDOWN ==============
-const jenis = ["BOOKLET","DISPLAY","FILTER WHITE","FILTER BROWN","FILTER PRINTED","DOUBLE TAPE","COVER","PAPER","FILTER 21","FILTER 26",
-  "FILTER 30","FILTER 40","TRAPEZOID","HOLDER S","HOLDER M","HOLDER L","HOLDER 9X9","HOLDER 10X10","LAYER BOX","PLAT","MAGNET",
-  "MIKA","JAR","STICKER JAR","STICKER MIKA","STICKER FILTER","STICKER BULAT BESAR","STICKER BULAT KECIL","TUBE","FILTER GREEN","FILTER BLUE"];
+        async function loadDashboard() {
+            const container = document.getElementById('mainContent');
+            const { data: headers } = await sb.from('pi_header').select('*').order('created_at', { ascending: false });
+            const { data: details } = await sb.from('pi_detail').select('*');
+            
+            const totalPi = headers ? headers.length : 0;
+            const totalItem = details ? details.length : 0;
+            
+            let tableHtml = '';
+            if (headers && headers.length > 0) {
+                for (let i = 0; i < Math.min(5, headers.length); i++) {
+                    const h = headers[i];
+                    const items = details ? details.filter(d => d.pi_id === h.id) : [];
+                    const itemCount = items.length;
+                    const brands = [...new Set(items.map(i => i.brand))].join(', ');
+                    tableHtml += `<tr><br> <td><b>${h.no_pi}</b></td> <td>${h.tanggal}</td> <td>${itemCount} item</td> <td>${brands}</td> </tr>`;
+                }
+            } else {
+                tableHtml = '<tr><td colspan="4">Belum ada data PI</td></tr>';
+            }
+            
+            container.innerHTML = `
+                <div class="stats">
+                    <div class="stat-card"><div class="stat-value">${totalPi}</div><div class="stat-label">Total PI</div></div>
+                    <div class="stat-card"><div class="stat-value">${totalItem}</div><div class="stat-label">Total Item</div></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📋 5 PI Terbaru</div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th>No PI</th><th>Tanggal</th><th>Item</th><th>Brand</th></tr></thead>
+                            <tbody>${tableHtml}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
 
-const paper = ["32 LEAVES","33 LEAVES","35 LEAVES","40 LEAVES","42 LEAVES","50 LEAVES","51 LEAVES","52 LEAVES",
-  "60 LEAVES","70 MM","83 MM","84 MM","98 MM","109 MM","110 MM"];
+        async function checkSession() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) window.location.href = 'login.html';
+        }
 
-const size = ["1 1/4","18X6,5","18X8","SINGLE","KS","KSS","KSSS","SKS","3 CONES/PACK","6 CONES/PACK","8 CONES/PACK","700 CONES/BOX",
-  "729 CONES/BOX","900 CONES/BOX","50 CONES/JARS","800 CONES/BOX","1000 CONES/BOX"];
+        function setupEventListeners() {
+            document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
+            document.getElementById('overlay').addEventListener('click', closeSidebar);
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            document.getElementById('logoutMenu').addEventListener('click', logout);
+            
+            document.querySelectorAll('.menu-item[data-menu]').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const menu = item.getAttribute('data-menu');
+                    goToMenu(menu);
+                });
+            });
+            
+            let touchStartX = 0;
+            document.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
+            document.addEventListener('touchend', (e) => {
+                const diff = e.changedTouches[0].screenX - touchStartX;
+                if (diff > 50 && touchStartX < 30) openSidebar();
+                else if (diff < -50 && document.getElementById('sidebar').classList.contains('open')) closeSidebar();
+            });
+        }
 
-// ============== ELEMEN ==============
-const tanggal = document.getElementById('tanggal');
-const nopo = document.getElementById('nopo');
-const brand = document.getElementById('brand');
-const inputTable = document.getElementById('inputTable');
-const btnTambah = document.getElementById('btnTambah');
-const btnSimpan = document.getElementById('btnSimpan');
-const duplicateModal = document.getElementById('duplicateModal');
-const duplicateMessage = document.getElementById('duplicateMessage');
-
-// ============== STATE UNTUK MODAL ==============
-let pendingData = null; // Menyimpan data yang akan disimpan jika user memilih "Tetap Simpan"
-
-// ============== FUNGSI TAMBAH BARIS ==============
-function tambahBaris() {
-  console.log("➕ Menambah baris baru");
-  
-  const barisBaru = inputTable.insertRow(-1);
-  
-  // Kolom Jenis
-  const cellJenis = barisBaru.insertCell(0);
-  const selectJenis = document.createElement('select');
-  selectJenis.innerHTML = '<option value="">Pilih Jenis</option>';
-  jenis.forEach(j => {
-    const option = document.createElement('option');
-    option.value = j;
-    option.textContent = j;
-    selectJenis.appendChild(option);
-  });
-  cellJenis.appendChild(selectJenis);
-  
-  // Kolom Paper
-  const cellPaper = barisBaru.insertCell(1);
-  const selectPaper = document.createElement('select');
-  selectPaper.innerHTML = '<option value="">Pilih Paper</option>';
-  paper.forEach(p => {
-    const option = document.createElement('option');
-    option.value = p;
-    option.textContent = p;
-    selectPaper.appendChild(option);
-  });
-  cellPaper.appendChild(selectPaper);
-  
-  // Kolom Size
-  const cellSize = barisBaru.insertCell(2);
-  const selectSize = document.createElement('select');
-  selectSize.innerHTML = '<option value="">Pilih Size</option>';
-  size.forEach(s => {
-    const option = document.createElement('option');
-    option.value = s;
-    option.textContent = s;
-    selectSize.appendChild(option);
-  });
-  cellSize.appendChild(selectSize);
-  
-  // Kolom Qty
-  const cellQty = barisBaru.insertCell(3);
-  const inputQty = document.createElement('input');
-  inputQty.type = 'number';
-  inputQty.min = '1';
-  inputQty.value = '1';
-  inputQty.style.width = '80px';
-  cellQty.appendChild(inputQty);
-  
-  // Kolom Aksi
-  const cellAksi = barisBaru.insertCell(4);
-  const btnHapus = document.createElement('button');
-  btnHapus.className = 'btn-small';
-  btnHapus.style.cssText = 'background:#ef4444; color:white; border:none;';
-  btnHapus.textContent = '✕ Hapus';
-  btnHapus.onclick = function() {
-    if(confirm('Hapus baris ini?')) {
-      barisBaru.remove();
-      console.log("🗑️ Baris dihapus");
-    }
-  };
-  cellAksi.appendChild(btnHapus);
-}
-
-// ============== FUNGSI CEK DUPLIKAT ==============
-function cekDuplikat(baris) {
-  const map = new Map();
-  const duplikatIndices = [];
-
-  baris.forEach((item, index) => {
-    // Buat key unik dari field yang relevan (Jenis, Paper, Size)
-    const key = `${item.jenis}|${item.paper}|${item.size}`;
-    
-    if (map.has(key)) {
-      // Jika sudah ada, catat index duplikat
-      if (!duplikatIndices.includes(map.get(key))) {
-        duplikatIndices.push(map.get(key));
-      }
-      duplikatIndices.push(index);
-    } else {
-      map.set(key, index);
-    }
-  });
-
-  return duplikatIndices;
-}
-
-// ============== FUNGSI HIGHLIGHT BARIS DUPLIKAT ==============
-function highlightDuplicateRows(indices) {
-  // Hapus highlight sebelumnya
-  document.querySelectorAll('#inputTable tr').forEach(row => {
-    if (row.rowIndex > 0) { // Lewati header
-      row.classList.remove('duplicate-row', 'duplicate-highlight');
-    }
-  });
-
-  // Highlight baris duplikat
-  indices.forEach(idx => {
-    // +1 karena row index 0 adalah header
-    const row = inputTable.rows[idx + 1];
-    if (row) {
-      row.classList.add('duplicate-row', 'duplicate-highlight');
-    }
-  });
-}
-
-// ============== FUNGSI SIMPAN DENGAN DETEKSI DUPLIKAT ==============
-async function simpan() {
-  console.log("🔵 TOMBOL SIMPAN DI KLIK!");
-  
-  // ===== VALIDASI =====
-  if(!tanggal.value) {
-    alert("❌ Tanggal harus diisi");
-    return;
-  }
-  
-  if(!brand.value) {
-    alert("❌ Brand harus diisi");
-    return;
-  }
-  
-  // Ambil semua baris (kecuali header)
-  const baris = [];
-  for (let i = 1; i < inputTable.rows.length; i++) {
-    const row = inputTable.rows[i];
-    const selects = row.querySelectorAll('select');
-    const input = row.querySelector('input[type="number"]');
-    
-    // Validasi setiap baris
-    if(!selects[0].value) {
-      alert("❌ Baris ke-" + i + " : Jenis belum dipilih");
-      return;
-    }
-    if(!selects[1].value) {
-      alert("❌ Baris ke-" + i + " : Paper belum dipilih");
-      return;
-    }
-    if(!selects[2].value) {
-      alert("❌ Baris ke-" + i + " : Size belum dipilih");
-      return;
-    }
-    
-    baris.push({
-      tanggal: tanggal.value,
-      nopo: nopo.value,
-      brand: brand.value,
-      jenis: selects[0].value,
-      paper: selects[1].value,
-      size: selects[2].value,
-      qty: parseInt(input.value) || 1
-    });
-  }
-  
-  console.log("📦 Data yang akan disimpan:", baris);
-  
-  if(baris.length === 0) {
-    alert("❌ Tambahkan minimal 1 barang");
-    return;
-  }
-  
-  // ===== CEK DUPLIKAT =====
-  const duplikatIndices = cekDuplikat(baris);
-
-  if (duplikatIndices.length > 0) {
-    // Hitung jumlah grup duplikat
-    const uniqueKeys = new Set();
-    duplikatIndices.forEach(idx => {
-      const item = baris[idx];
-      const key = `${item.jenis}|${item.paper}|${item.size}`;
-      uniqueKeys.add(key);
-    });
-
-    const jumlahGrup = uniqueKeys.size;
-    const jumlahBaris = duplikatIndices.length;
-
-    // Tampilkan pesan di modal
-    duplicateMessage.innerHTML = `Ditemukan <strong>${jumlahBaris} baris</strong> dengan data Jenis, Paper, Size yang sama dalam <strong>${jumlahGrup} grup</strong>.<br><br>Baris yang sama: ${duplikatIndices.map(i => i+1).join(', ')}`;
-    
-    // Highlight baris duplikat
-    highlightDuplicateRows(duplikatIndices);
-
-    // Simpan data untuk digunakan jika user memilih "Tetap Simpan"
-    pendingData = baris;
-
-    // Tampilkan modal
-    duplicateModal.style.display = 'flex';
-    return;
-  }
-  
-  // ===== KIRIM KE SUPABASE (JIKA TIDAK ADA DUPLIKAT) =====
-  await prosesSimpan(baris);
-}
-
-// ============== FUNGSI PROSES SIMPAN KE SUPABASE ==============
-async function prosesSimpan(baris) {
-  try {
-    let berhasil = 0;
-    let gagal = 0;
-    
-    for (let i = 0; i < baris.length; i++) {
-      const item = baris[i];
-      
-      console.log(`📤 Mengirim baris ${i+1}:`, item);
-      
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify(item)
-      });
-      
-      if (response.ok) {
-        berhasil++;
-        console.log(`✅ Baris ${i+1} berhasil`);
-      } else {
-        gagal++;
-        const errorText = await response.text();
-        console.error(`❌ Baris ${i+1} gagal:`, response.status, errorText);
-      }
-    }
-    
-    // ===== TAMPILKAN HASIL =====
-    if (berhasil > 0) {
-      alert(`✅ ${berhasil} data berhasil disimpan!${gagal > 0 ? `\n⚠️ ${gagal} data gagal` : ''}`);
-      
-      if (gagal === 0) {
-        // Kosongkan tabel
-        while(inputTable.rows.length > 1) {
-          inputTable.deleteRow(1);
+        async function init() {
+            await checkSession();
+            setupEventListeners();
+            await loadDashboard();
         }
         
-        // Reset form
-        tanggal.value = '';
-        nopo.value = '';
-        brand.value = '';
-        
-        // Tambah baris baru
-        tambahBaris();
-        
-        console.log("✅ Form sudah direset");
-      }
-    } else {
-      alert("❌ Semua data gagal disimpan. Lihat console (F12) untuk detail.");
-    }
-    
-  } catch (err) {
-    console.error("❌ Error:", err);
-    alert("❌ Error: " + err.message);
-  }
-}
-
-// ============== FUNGSI UNTUK MODAL ==============
-window.lanjutkanSimpan = async function() {
-  if (pendingData) {
-    duplicateModal.style.display = 'none';
-    await prosesSimpan(pendingData);
-    pendingData = null;
-  }
-};
-
-window.tutupModal = function() {
-  duplicateModal.style.display = 'none';
-  pendingData = null;
-  // Hapus highlight
-  document.querySelectorAll('#inputTable tr').forEach(row => {
-    if (row.rowIndex > 0) {
-      row.classList.remove('duplicate-row', 'duplicate-highlight');
-    }
-  });
-};
-
-// ============== TEST KONEKSI ==============
-async function testKoneksi() {
-  try {
-    console.log("🔍 Testing koneksi ke Supabase...");
-    
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/barang_masuk?select=count&apikey=${SUPABASE_KEY}`);
-    
-    if (response.ok) {
-      console.log("✅ Koneksi ke Supabase BERHASIL!");
-    } else {
-      console.error("❌ Koneksi gagal:", response.status);
-    }
-  } catch (err) {
-    console.error("❌ Error koneksi:", err);
-  }
-}
-
-// ============== EVENT LISTENER ==============
-btnTambah.onclick = function() {
-  console.log("➕ Tombol Tambah diklik");
-  tambahBaris();
-};
-
-btnSimpan.onclick = function() {
-  console.log("💾 Tombol Simpan diklik");
-  simpan();
-};
-
-// ============== INIT ==============
-console.log("🏁 Inisialisasi...");
-tambahBaris(); // Tambah baris pertama
-testKoneksi(); // Test koneksi ke Supabase
-
-console.log("✅ Siap! Silakan input data.");
-</script>
+        init();
+    </script>
 </body>
 </html>
