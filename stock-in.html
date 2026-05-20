@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Barang Masuk - Gudang Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; overflow-x: hidden; }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: #1e293b;
+            color: white;
+            transition: 0.3s;
+            z-index: 1000;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+        }
+        .sidebar.open { left: 0; }
+        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid #334155; background: #0f172a; }
+        .sidebar-header h3 { font-size: 18px; }
+        .sidebar-header p { font-size: 12px; color: #94a3b8; margin-top: 5px; }
+        .sidebar-menu { padding: 10px 0; }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #cbd5e1;
+            cursor: pointer;
+        }
+        .menu-item:hover { background: #334155; color: white; }
+        .menu-item.active { background: #3b82f6; color: white; }
+        .menu-item .icon { width: 30px; font-size: 20px; }
+        .menu-item .text { font-size: 14px; }
+        .menu-divider { height: 1px; background: #334155; margin: 10px 20px; }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+        .overlay.show { display: block; }
+
+        .header {
+            background: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+        .logo { font-size: 18px; font-weight: bold; color: #1e293b; }
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .container { padding: 15px; max-width: 800px; margin: 0 auto; }
+        .card { background: white; border-radius: 12px; padding: 18px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card-title { font-size: 16px; font-weight: 600; margin-bottom: 15px; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+        
+        input, button, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        button { background: #3b82f6; color: white; border: none; cursor: pointer; }
+        button:active { transform: scale(0.98); }
+        .btn-hapus { background: #ef4444; width: auto; padding: 5px 10px; margin: 0; font-size: 12px; }
+        
+        .alert { padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; }
+        .alert-success { background: #d1fae5; color: #065f46; }
+        .alert-error { background: #fee2e2; color: #991b1b; }
+        
+        .info-text { font-size: 12px; color: #64748b; margin-top: 5px; }
+        
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
+        th { background: #f8fafc; color: #64748b; font-weight: 500; }
+        
+        @media (max-width: 600px) {
+            th, td { font-size: 10px; padding: 6px 4px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>📦 GUDANG PRO</h3>
+            <p>Manajemen Inventory</p>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item" data-menu="dashboard"><span class="icon">📊</span><span class="text">Dashboard</span></div>
+            <div class="menu-item" data-menu="pi-input"><span class="icon">📝</span><span class="text">Input PI</span></div>
+            <div class="menu-item active" data-menu="stock-in"><span class="icon">📥</span><span class="text">Barang Masuk</span></div>
+            <div class="menu-item" data-menu="stock-out"><span class="icon">📤</span><span class="text">Barang Keluar</span></div>
+            <div class="menu-item" data-menu="stock-report"><span class="icon">📋</span><span class="text">Stok Gudang</span></div>
+            <div class="menu-divider"></div>
+            <div class="menu-item" data-menu="master"><span class="icon">⚙️</span><span class="text">Master Barang</span></div>
+            <div class="menu-item" data-menu="supplier"><span class="icon">🏢</span><span class="text">Supplier</span></div>
+            <div class="menu-item" data-menu="po"><span class="icon">📑</span><span class="text">Purchase Order</span></div>
+            <div class="menu-divider"></div>
+            <div class="menu-item" id="logoutMenu"><span class="icon">🚪</span><span class="text">Logout</span></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="header">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="logo">📦 GUDANG PRO</div>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+
+    <div class="container" id="mainContent"></div>
+
+    <script>
+        async function loadPiList() {
+            const { data: headers } = await sb.from('pi_header').select('*').order('created_at', { ascending: false });
+            let options = '<option value="">-- Pilih No PI --</option>';
+            if (headers) {
+                for (const h of headers) {
+                    options += `<option value="${h.id}">${h.no_pi} - ${h.tanggal}</option>`;
+                }
+            }
+            document.getElementById('pi_select').innerHTML = options;
+        }
+        
+        async function onPiChange() {
+            const piId = document.getElementById('pi_select').value;
+            const itemSelect = document.getElementById('item_select');
+            
+            if (!piId) {
+                itemSelect.innerHTML = '<option value="">-- Pilih PI dulu --</option>';
+                document.getElementById('historyList').innerHTML = '<div class="info-text">Pilih PI dan item untuk melihat histori</div>';
+                return;
+            }
+            
+            const { data: details } = await sb.from('pi_detail').select('*').eq('pi_id', parseInt(piId));
+            
+            let options = '<option value="">-- Pilih Item --</option>';
+            for (const item of details) {
+                options += `<option value="${item.id}">
+                    ${item.brand} | ${item.jenis} | Paper:${item.paper || '-'} | Size:${item.size || '-'} | Qty PI: ${item.qty_pi}
+                </option>`;
+            }
+            itemSelect.innerHTML = options;
+        }
+        
+        async function onItemChange() {
+            const itemId = document.getElementById('item_select').value;
+            if (!itemId) {
+                document.getElementById('historyList').innerHTML = '<div class="info-text">Pilih item untuk melihat histori</div>';
+                return;
+            }
+            
+            // Ambil data item lengkap
+            const { data: item } = await sb.from('pi_detail').select('*, pi_header(no_pi)').eq('id', parseInt(itemId)).single();
+            
+            // Ambil histori barang masuk
+            const { data: history } = await sb.from('barang_masuk')
+                .select('*')
+                .eq('detail_id', parseInt(itemId))
+                .order('tanggal', { ascending: false });
+            
+            if (!history || history.length === 0) {
+                document.getElementById('historyList').innerHTML = '<div class="info-text">Belum ada histori barang masuk untuk item ini</div>';
+                return;
+            }
+            
+            let totalMasuk = 0;
+            history.forEach(h => totalMasuk += h.qty);
+            
+            let html = `
+                <div class="info-text" style="margin-bottom:15px;padding:10px;background:#e0f2fe;border-radius:8px">
+                    <strong>📄 Informasi Item:</strong><br>
+                    No PI: ${item.pi_header.no_pi}<br>
+                    Brand: ${item.brand}<br>
+                    Jenis: ${item.jenis}<br>
+                    Paper: ${item.paper || '-'}<br>
+                    Size: ${item.size || '-'}<br>
+                    Qty PI: ${item.qty_pi}<br>
+                    📊 Total Masuk: <strong style="color:#10b981">${totalMasuk}</strong> | Jumlah Transaksi: ${history.length}
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr><th>Tanggal</th><th>Qty</th><th>Keterangan</th><th>Aksi</th></tr>
+                        </thead>
+                        <tbody>`;
+            
+            for (const h of history) {
+                html += `<tr>
+                    <td>${h.tanggal}</td>
+                    <td><span style="font-weight:bold;color:#10b981">+${h.qty}</span></td>
+                    <td>${h.keterangan || '-'}</td>
+                    <td><button class="btn-hapus" onclick="hapusHistory(${h.id}, ${itemId})">Hapus</button></td>
+                </tr>`;
+            }
+            
+            html += `</tbody>
+                    </table>
+                </div>`;
+            
+            document.getElementById('historyList').innerHTML = html;
+        }
+        
+        async function hapusHistory(id, itemId) {
+            if (confirm('Yakin ingin menghapus histori ini? Stok akan berkurang kembali.')) {
+                const { error } = await sb.from('barang_masuk').delete().eq('id', id);
+                if (error) {
+                    alert('Gagal menghapus: ' + error.message);
+                } else {
+                    alert('Histori berhasil dihapus');
+                    await onItemChange();
+                }
+            }
+        }
+        
+        async function simpanMasuk() {
+            const piId = document.getElementById('pi_select').value;
+            const itemId = document.getElementById('item_select').value;
+            const qty = document.getElementById('qty_masuk').value;
+            const tanggal = document.getElementById('tanggal_masuk').value;
+            const keterangan = document.getElementById('keterangan').value;
+            
+            if (!piId || !itemId || !qty || !tanggal) {
+                document.getElementById('msgTransaksi').innerHTML = '<div class="alert alert-error">Pilih PI, Item, isi Qty dan Tanggal!</div>';
+                return;
+            }
+            
+            if (parseInt(qty) <= 0) {
+                document.getElementById('msgTransaksi').innerHTML = '<div class="alert alert-error">Qty harus lebih dari 0!</div>';
+                return;
+            }
+            
+            const { error } = await sb.from('barang_masuk').insert([{
+                detail_id: parseInt(itemId),
+                tanggal: tanggal,
+                qty: parseInt(qty),
+                keterangan: keterangan || '-'
+            }]);
+            
+            if (error) {
+                document.getElementById('msgTransaksi').innerHTML = '<div class="alert alert-error">' + error.message + '</div>';
+            } else {
+                document.getElementById('msgTransaksi').innerHTML = '<div class="alert alert-success">✅ Barang Masuk dicatat!</div>';
+                document.getElementById('qty_masuk').value = '';
+                document.getElementById('keterangan').value = '';
+                await onItemChange();
+            }
+        }
+        
+        async function loadHalaman() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            document.getElementById('mainContent').innerHTML = `
+                <div class="card">
+                    <div class="card-title">📥 Barang Masuk</div>
+                    <div id="msgTransaksi"></div>
+                    
+                    <label>Pilih No PI</label>
+                    <select id="pi_select" onchange="onPiChange()">
+                        <option value="">Loading...</option>
+                    </select>
+                    
+                    <label>Pilih Item Barang</label>
+                    <select id="item_select" onchange="onItemChange()">
+                        <option value="">-- Pilih PI dulu --</option>
+                    </select>
+                    
+                    <label>Tanggal Masuk</label>
+                    <input type="date" id="tanggal_masuk" value="${today}">
+                    
+                    <label>Jumlah Masuk</label>
+                    <input type="number" id="qty_masuk" placeholder="Qty">
+                    
+                    <label>Keterangan (opsional)</label>
+                    <input type="text" id="keterangan" placeholder="Keterangan">
+                    
+                    <button onclick="simpanMasuk()">📥 Simpan Barang Masuk</button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">📋 Histori Barang Masuk</div>
+                    <div id="historyList">
+                        <div class="info-text">Pilih PI dan item untuk melihat histori</div>
+                    </div>
+                </div>
+            `;
+            
+            await loadPiList();
+        }
+        
+        // ==================== SIDEBAR & NAVIGASI ====================
+        function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+        function toggleSidebar() { if (document.getElementById('sidebar').classList.contains('open')) closeSidebar(); else openSidebar(); }
+        
+        async function logout() { await sb.auth.signOut(); window.location.href = 'login.html'; }
+        
+        function goToMenu(menu) {
+            if (menu === 'dashboard') window.location.href = 'dashboard.html';
+            else if (menu === 'pi-input') window.location.href = 'pi-input.html';
+            else if (menu === 'stock-in') window.location.href = 'stock-in.html';
+            else if (menu === 'stock-out') window.location.href = 'stock-out.html';
+            else if (menu === 'stock-report') window.location.href = 'stock-report.html';
+            else alert('Menu ' + menu + ' akan segera tersedia');
+        }
+        
+        async function checkSession() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) window.location.href = 'login.html';
+        }
+        
+        function setupEventListeners() {
+            document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
+            document.getElementById('overlay').addEventListener('click', closeSidebar);
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            document.getElementById('logoutMenu').addEventListener('click', logout);
+            
+            document.querySelectorAll('.menu-item[data-menu]').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const menu = item.getAttribute('data-menu');
+                    goToMenu(menu);
+                });
+            });
+            
+            let touchStartX = 0;
+            document.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
+            document.addEventListener('touchend', (e) => {
+                const diff = e.changedTouches[0].screenX - touchStartX;
+                if (diff > 50 && touchStartX < 30) openSidebar();
+                else if (diff < -50 && document.getElementById('sidebar').classList.contains('open')) closeSidebar();
+            });
+        }
+        
+        async function init() {
+            await checkSession();
+            setupEventListeners();
+            await loadHalaman();
+        }
+        
+        window.onPiChange = onPiChange;
+        window.onItemChange = onItemChange;
+        window.simpanMasuk = simpanMasuk;
+        window.hapusHistory = hapusHistory;
+        
+        init();
+    </script>
+</body>
+</html>
