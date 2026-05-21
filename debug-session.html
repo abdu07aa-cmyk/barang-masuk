@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Session</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+</head>
+<body>
+    <div id="hasil" style="padding:20px;font-family:monospace"></div>
+
+    <script>
+        async function debug() {
+            const hasil = document.getElementById('hasil');
+            
+            hasil.innerHTML = '1. Mengecek session...<br>';
+            
+            // Cek session
+            const { data: { session }, error: sessionError } = await sb.auth.getSession();
+            if (sessionError) {
+                hasil.innerHTML += '❌ Session error: ' + sessionError.message;
+                return;
+            }
+            
+            if (!session) {
+                hasil.innerHTML += '❌ Tidak ada session. Redirect ke login...<br>';
+                setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+                return;
+            }
+            
+            hasil.innerHTML += '✅ Session OK. User: ' + session.user.email + '<br>';
+            hasil.innerHTML += '2. Mencoba mengambil data pi_header...<br>';
+            
+            // Test ambil data
+            const { data: headers, error: err1 } = await sb.from('pi_header').select('*');
+            if (err1) {
+                hasil.innerHTML += '❌ Error pi_header: ' + err1.message + '<br>';
+                hasil.innerHTML += 'Detail error: ' + JSON.stringify(err1) + '<br>';
+                return;
+            }
+            
+            hasil.innerHTML += '✅ pi_header berhasil: ' + headers.length + ' data<br>';
+            hasil.innerHTML += '<br><strong style="color:green">✅ SEMUA BERHASIL!</strong><br>';
+            hasil.innerHTML += '<button onclick="window.location.href=\'dashboard.html\'">Kembali</button>';
+        }
+        
+        debug();
+    </script>
+</body>
+</html>
