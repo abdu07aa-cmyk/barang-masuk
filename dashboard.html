@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Laporan Stok - Gudang Pro</title>
+    <title>Dashboard - Gudang Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; overflow-x: hidden; }
@@ -84,76 +83,22 @@
             cursor: pointer;
         }
 
-        .container { padding: 15px; max-width: 100%; margin: 0 auto; }
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
         .card { background: white; border-radius: 12px; padding: 18px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .card-title { font-size: 16px; font-weight: 600; margin-bottom: 15px; color: #1e293b; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        
+        .card-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #1e293b; }
+        .stats { display: flex; gap: 12px; margin-bottom: 20px; }
+        .stat-card { flex: 1; background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 28px; font-weight: bold; color: #3b82f6; }
+        .stat-label { font-size: 12px; color: #64748b; margin-top: 5px; }
         .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
-        th { background: #f8fafc; color: #64748b; font-weight: 500; position: sticky; top: 0; }
-        
-        .stok-baik { color: #10b981; font-weight: bold; }
-        .stok-sedikit { color: #f59e0b; font-weight: bold; }
-        .stok-habis { color: #ef4444; font-weight: bold; }
-        
-        .info-text { font-size: 12px; color: #64748b; margin-top: 5px; }
-        .loading { text-align: center; padding: 30px; color: #64748b; }
-        
-        .filter-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .filter-bar input {
-            flex: 2;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 13px;
-        }
-        .filter-bar button {
-            padding: 8px 15px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .btn-export {
-            background: #10b981;
-        }
-        
-        .summary {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .summary-card {
-            flex: 1;
-            background: white;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            min-width: 100px;
-        }
-        .summary-value {
-            font-size: 22px;
-            font-weight: bold;
-            color: #1e293b;
-        }
-        .summary-label {
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 4px;
-        }
-        
-        @media (max-width: 600px) {
-            th, td { font-size: 10px; padding: 6px 4px; }
-            .summary-value { font-size: 18px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+        th { color: #64748b; font-weight: 500; }
+        .loading { text-align: center; padding: 20px; color: #64748b; }
+
+        @media (max-width: 480px) {
+            .stat-value { font-size: 22px; }
+            .card-title { font-size: 14px; }
         }
     </style>
 </head>
@@ -164,19 +109,22 @@
             <h3>📦 GUDANG PRO</h3>
             <p>Manajemen Inventory</p>
         </div>
-        <div class="sidebar-menu">
-            <div class="menu-item" data-menu="dashboard"><span class="icon">📊</span><span class="text">Dashboard</span></div>
-            <div class="menu-item" data-menu="pi-input"><span class="icon">📝</span><span class="text">Input PI</span></div>
-            <div class="menu-item" data-menu="stock-in"><span class="icon">📥</span><span class="text">Barang Masuk</span></div>
-            <div class="menu-item" data-menu="stock-out"><span class="icon">📤</span><span class="text">Barang Keluar</span></div>
-            <div class="menu-item active" data-menu="stock-report"><span class="icon">📋</span><span class="text">Stok Gudang</span></div>
-            <div class="menu-divider"></div>
-            <div class="menu-item" data-menu="master"><span class="icon">⚙️</span><span class="text">Master Barang</span></div>
-            <div class="menu-item" data-menu="supplier"><span class="icon">🏢</span><span class="text">Supplier</span></div>
-            <div class="menu-item" data-menu="po"><span class="icon">📑</span><span class="text">Purchase Order</span></div>
-            <div class="menu-divider"></div>
-            <div class="menu-item" id="logoutMenu"><span class="icon">🚪</span><span class="text">Logout</span></div>
-        </div>
+       <div class="sidebar-menu">
+    <div class="menu-item active" data-menu="dashboard"><span class="icon">📊</span><span class="text">Dashboard</span></div>
+    <div class="menu-item" data-menu="pi-input"><span class="icon">📝</span><span class="text">Input PI</span></div>
+    <div class="menu-item" data-menu="stock-in"><span class="icon">📥</span><span class="text">Barang Masuk</span></div>
+    <div class="menu-item" data-menu="stock-out"><span class="icon">📤</span><span class="text">Barang Keluar</span></div>
+    <div class="menu-item" data-menu="stock-report"><span class="icon">📋</span><span class="text">Stok Gudang</span></div>
+    <div class="menu-item" data-menu="executive"><span class="icon">📈</span><span class="text">Laporan Eksekutif</span></div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" data-menu="master"><span class="icon">⚙️</span><span class="text">Master Barang</span></div>
+    <div class="menu-item" data-menu="supplier"><span class="icon">🏢</span><span class="text">Supplier</span></div>
+    <div class="menu-item" data-menu="po"><span class="icon">📑</span><span class="text">Purchase Order</span></div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" data-menu="export"><span class="icon">📎</span><span class="text">Export Data</span></div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" id="logoutMenu"><span class="icon">🚪</span><span class="text">Logout</span></div>
+</div>
     </div>
 
     <div class="overlay" id="overlay"></div>
@@ -187,242 +135,72 @@
         <button class="logout-btn" id="logoutBtn">Logout</button>
     </div>
 
-    <div class="container" id="mainContent"></div>
+    <div class="container" id="mainContent"><div class="loading">Loading...</div></div>
 
     <script>
-        let allItems = [];
-        let currentFilteredItems = [];
-        
-        async function loadStockReport() {
-            document.getElementById('mainContent').innerHTML = '<div class="loading">⏳ Mengambil data stok...</div>';
-            
+        function goToMenu(menu) {
+    if (menu === 'dashboard') window.location.href = 'dashboard.html';
+    else if (menu === 'pi-input') window.location.href = 'pi-input.html';
+    else if (menu === 'stock-in') window.location.href = 'stock-in.html';
+    else if (menu === 'stock-out') window.location.href = 'stock-out.html';
+    else if (menu === 'stock-report') window.location.href = 'stock-report.html';
+    else if (menu === 'export') window.location.href = 'export-final3.html';
+    else if (menu === 'executive') window.location.href = 'executive-report.html';
+    else alert('Menu ' + menu + ' akan segera tersedia');
+        }
+
+        async function logout() {
+            await sb.auth.signOut();
+            window.location.href = 'login.html';
+        }
+
+        function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+        function toggleSidebar() { if (document.getElementById('sidebar').classList.contains('open')) closeSidebar(); else openSidebar(); }
+
+        async function loadDashboard() {
+            const container = document.getElementById('mainContent');
             const { data: headers } = await sb.from('pi_header').select('*').order('created_at', { ascending: false });
             const { data: details } = await sb.from('pi_detail').select('*');
-            const { data: masuk } = await sb.from('barang_masuk').select('*');
-            const { data: keluar } = await sb.from('barang_keluar').select('*');
             
-            if (!details || details.length === 0) {
-                document.getElementById('mainContent').innerHTML = `
-                    <div class="card">
-                        <div class="card-title">📋 Laporan Stok</div>
-                        <div class="info-text">Belum ada data PI. Silakan input PI terlebih dahulu.</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            const stokMap = {};
-            for (const detail of details) {
-                let totalMasuk = 0, totalKeluar = 0;
-                if (masuk) masuk.forEach(m => { if (m.detail_id === detail.id) totalMasuk += m.qty; });
-                if (keluar) keluar.forEach(k => { if (k.detail_id === detail.id) totalKeluar += k.qty; });
-                stokMap[detail.id] = {
-                    masuk: totalMasuk,
-                    keluar: totalKeluar,
-                    stok: totalMasuk - totalKeluar
-                };
-            }
-            
-            allItems = [];
-            for (const detail of details) {
-                const header = headers.find(h => h.id === detail.pi_id);
-                const stokData = stokMap[detail.id] || { masuk: 0, keluar: 0, stok: 0 };
-                allItems.push({
-                    no_pi: header ? header.no_pi : '-',
-                    tanggal_pi: header ? header.tanggal : '-',
-                    brand: detail.brand,
-                    jenis: detail.jenis,
-                    paper: detail.paper || '-',
-                    size: detail.size || '-',
-                    qty_pi: detail.qty_pi,
-                    total_masuk: stokData.masuk,
-                    total_keluar: stokData.keluar,
-                    stok: stokData.stok
-                });
-            }
-            
-            currentFilteredItems = [...allItems];
-            renderTable(currentFilteredItems);
-        }
-        
-        function renderTable(items) {
-            let totalStok = 0;
-            let totalItemMasuk = 0;
-            let totalItemKeluar = 0;
-            let itemHabis = 0;
-            let itemMenipis = 0;
-            
-            for (const item of items) {
-                totalStok += item.stok;
-                totalItemMasuk += item.total_masuk;
-                totalItemKeluar += item.total_keluar;
-                if (item.stok <= 0) itemHabis++;
-                else if (item.stok < 10) itemMenipis++;
-            }
+            const totalPi = headers ? headers.length : 0;
+            const totalItem = details ? details.length : 0;
             
             let tableHtml = '';
-            for (const item of items) {
-                let statusClass = '';
-                let statusText = '';
-                if (item.stok <= 0) { statusClass = 'stok-habis'; statusText = 'Habis'; }
-                else if (item.stok < 10) { statusClass = 'stok-sedikit'; statusText = 'Menipis'; }
-                else { statusClass = 'stok-baik'; statusText = 'Cukup'; }
-                
-                tableHtml += `<tr>
-                    <td><b>${item.no_pi}</b></td>
-                    <td>${item.brand}</td>
-                    <td>${item.jenis}</td>
-                    <td>${item.paper}</td>
-                    <td>${item.size}</td>
-                    <td>${item.qty_pi}</td>
-                    <td>${item.total_masuk}</td>
-                    <td>${item.total_keluar}</td>
-                    <td class="${statusClass}">${item.stok} (${statusText})</td>
-                </tr>`;
+            if (headers && headers.length > 0) {
+                for (let i = 0; i < Math.min(5, headers.length); i++) {
+                    const h = headers[i];
+                    const items = details ? details.filter(d => d.pi_id === h.id) : [];
+                    const itemCount = items.length;
+                    const brands = [...new Set(items.map(i => i.brand))].join(', ');
+                    tableHtml += `<tr><br> <td><b>${h.no_pi}</b></td> <td>${h.tanggal}</td> <td>${itemCount} item</td> <td>${brands}</td> </tr>`;
+                }
+            } else {
+                tableHtml = '<tr><td colspan="4">Belum ada data PI</td></tr>';
             }
             
-            if (items.length === 0) {
-                tableHtml = '<tr><td colspan="9">Tidak ada data yang cocok</td></tr>';
-            }
-            
-            const html = `
-                <div class="summary">
-                    <div class="summary-card"><div class="summary-value">${allItems.length}</div><div class="summary-label">Total Item</div></div>
-                    <div class="summary-card"><div class="summary-value">${totalStok}</div><div class="summary-label">Total Stok</div></div>
-                    <div class="summary-card"><div class="summary-value">${totalItemMasuk}</div><div class="summary-label">Total Masuk</div></div>
-                    <div class="summary-card"><div class="summary-value">${totalItemKeluar}</div><div class="summary-label">Total Keluar</div></div>
-                    <div class="summary-card"><div class="summary-value">${itemHabis}</div><div class="summary-label">Stok Habis</div></div>
-                    <div class="summary-card"><div class="summary-value">${itemMenipis}</div><div class="summary-label">Stok Menipis</div></div>
+            container.innerHTML = `
+                <div class="stats">
+                    <div class="stat-card"><div class="stat-value">${totalPi}</div><div class="stat-label">Total PI</div></div>
+                    <div class="stat-card"><div class="stat-value">${totalItem}</div><div class="stat-label">Total Item</div></div>
                 </div>
-                
                 <div class="card">
-                    <div class="card-title">
-                        <span>🔍 Filter & Pencarian</span>
-                        <button class="btn-export" onclick="exportToExcel()" style="margin-left:auto">📎 Export ke Excel</button>
-                    </div>
-                    <div class="filter-bar">
-                        <input type="text" id="searchInput" placeholder="Cari No PI, Brand, Jenis, Paper, Size..." onkeyup="filterTable()">
-                        <button onclick="resetFilter()">Reset</button>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-title">📋 Laporan Stok Lengkap</div>
+                    <div class="card-title">📋 5 PI Terbaru</div>
                     <div class="table-wrapper">
-                        <table id="stockTable">
-                            <thead>
-                                <tr>
-                                    <th>No PI</th><th>Brand</th><th>Jenis</th><th>Paper</th><th>Size</th>
-                                    <th>Qty PI</th><th>Masuk</th><th>Keluar</th><th>Stok Akhir</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody">${tableHtml}</tbody>
+                        <table>
+                            <thead><tr><th>No PI</th><th>Tanggal</th><th>Item</th><th>Brand</th></tr></thead>
+                            <tbody>${tableHtml}</tbody>
                         </table>
                     </div>
                 </div>
             `;
-            
-            document.getElementById('mainContent').innerHTML = html;
         }
-        
-        function filterTable() {
-            const searchText = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allItems.filter(item => 
-                item.no_pi.toLowerCase().includes(searchText) ||
-                item.brand.toLowerCase().includes(searchText) ||
-                item.jenis.toLowerCase().includes(searchText) ||
-                item.paper.toLowerCase().includes(searchText) ||
-                item.size.toLowerCase().includes(searchText)
-            );
-            currentFilteredItems = filtered;
-            
-            let tableHtml = '';
-            for (const item of filtered) {
-                let statusClass = '';
-                let statusText = '';
-                if (item.stok <= 0) { statusClass = 'stok-habis'; statusText = 'Habis'; }
-                else if (item.stok < 10) { statusClass = 'stok-sedikit'; statusText = 'Menipis'; }
-                else { statusClass = 'stok-baik'; statusText = 'Cukup'; }
-                
-                tableHtml += `<tr>
-                    <td><b>${item.no_pi}</b></td>
-                    <td>${item.brand}</td>
-                    <td>${item.jenis}</td>
-                    <td>${item.paper}</td>
-                    <td>${item.size}</td>
-                    <td>${item.qty_pi}</td>
-                    <td>${item.total_masuk}</td>
-                    <td>${item.total_keluar}</td>
-                    <td class="${statusClass}">${item.stok} (${statusText})</td>
-                </tr>`;
-            }
-            
-            if (filtered.length === 0) {
-                tableHtml = '<tr><td colspan="9">Tidak ada data yang cocok</td></tr>';
-            }
-            
-            document.getElementById('tableBody').innerHTML = tableHtml;
-        }
-        
-        function resetFilter() {
-            document.getElementById('searchInput').value = '';
-            currentFilteredItems = [...allItems];
-            filterTable();
-        }
-        
-        function exportToExcel() {
-            if (currentFilteredItems.length === 0) {
-                alert('Tidak ada data untuk diexport!');
-                return;
-            }
-            
-            const data = currentFilteredItems.map(item => ({
-                'No PI': item.no_pi,
-                'Brand': item.brand,
-                'Jenis': item.jenis,
-                'Paper': item.paper,
-                'Size': item.size,
-                'Qty PI': item.qty_pi,
-                'Total Masuk': item.total_masuk,
-                'Total Keluar': item.total_keluar,
-                'Stok Akhir': item.stok
-            }));
-            
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Laporan Stok');
-            
-            const colWidths = [
-                {wch:15}, {wch:15}, {wch:20}, {wch:15}, {wch:10}, {wch:10}, {wch:12}, {wch:12}, {wch:12}
-            ];
-            ws['!cols'] = colWidths;
-            
-            const now = new Date();
-            const fileName = `Laporan_Stok_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-        }
-        
-        // ==================== SIDEBAR & NAVIGASI ====================
-        function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
-        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
-        function toggleSidebar() { if (document.getElementById('sidebar').classList.contains('open')) closeSidebar(); else openSidebar(); }
-        
-        async function logout() { await sb.auth.signOut(); window.location.href = 'login.html'; }
-        
-        function goToMenu(menu) {
-            if (menu === 'dashboard') window.location.href = 'dashboard.html';
-            else if (menu === 'pi-input') window.location.href = 'pi-input.html';
-            else if (menu === 'stock-in') window.location.href = 'stock-in.html';
-            else if (menu === 'stock-out') window.location.href = 'stock-out.html';
-            else if (menu === 'stock-report') window.location.href = 'stock-report.html';
-            else alert('Menu ' + menu + ' akan segera tersedia');
-        }
-        
+
         async function checkSession() {
             const { data: { session } } = await sb.auth.getSession();
             if (!session) window.location.href = 'login.html';
         }
-        
+
         function setupEventListeners() {
             document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
             document.getElementById('overlay').addEventListener('click', closeSidebar);
@@ -444,16 +222,12 @@
                 else if (diff < -50 && document.getElementById('sidebar').classList.contains('open')) closeSidebar();
             });
         }
-        
+
         async function init() {
             await checkSession();
             setupEventListeners();
-            await loadStockReport();
+            await loadDashboard();
         }
-        
-        window.filterTable = filterTable;
-        window.resetFilter = resetFilter;
-        window.exportToExcel = exportToExcel;
         
         init();
     </script>
